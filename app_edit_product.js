@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dimensionZSpan = document.getElementById('dimensionZ');
     const scaleInput = document.getElementById('scaleInput');
     const applyScaleBtn = document.getElementById('applyScaleBtn');
+    const resetScaleBtn = document.getElementById('resetScaleBtn');
 
     let modelViewerElement = null; // To store the dynamically created model-viewer
     let currentModelName = '';
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlacingHotspot = false;
     let isRepositioningHotspot = false; // New state for repositioning
     let currentModelScale = { x: 1, y: 1, z: 1 }; // To store current scale
+    let currentHDRName = null; // Added for TODO #9
 
     // --- Initial State Updates ---
     updateFooterWarnings();
@@ -206,13 +208,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Get current scale and set input
                 updateScaleInput();
 
-                // Enable scale apply button
-                if(applyScaleBtn) applyScaleBtn.disabled = false; 
+                // Enable scale input and apply button
                 if(scaleInput) scaleInput.disabled = false;
+                if(applyScaleBtn) applyScaleBtn.disabled = true; 
+                if(resetScaleBtn) resetScaleBtn.disabled = false;
 
-                // TODO: Consider re-enabling material select population here if needed after load
-                // populateMaterialSelect(); 
-                // setupModelViewerEventListeners(); // Setup hotspot listener AFTER model is loaded
+                // Initialize UI controls with model's current values (Addresses TODO #3 & #4)
+                // Camera Orbit
+                if (modelViewerElement.cameraOrbit) {
+                    const orbitParts = modelViewerElement.cameraOrbit.split(' ');
+                    if (cameraYawInput && orbitParts[0]) cameraYawInput.value = parseFloat(orbitParts[0]);
+                    if (cameraPitchInput && orbitParts[1]) cameraPitchInput.value = parseFloat(orbitParts[1]);
+                    // Zoom is part 3 (e.g., '1.5m' or 'auto'), handled by camera-controls or auto for now
+                }
+
+                // Lighting - Exposure
+                if (exposureRange) exposureRange.value = modelViewerElement.exposure;
+                if (exposureValueInput) exposureValueInput.value = modelViewerElement.exposure;
+
+                // Lighting - Skybox
+                if (skyboxEnvCheckbox) skyboxEnvCheckbox.checked = !!modelViewerElement.skyboxImage;
+
+                // Lighting - Background Color
+                if (bgColorPicker) {
+                    // model-viewer background default is transparent, which is not a valid hex for input type=color
+                    // If it's transparent or not set, default picker to white.
+                    let currentBgColor = modelViewerElement.style.backgroundColor;
+                    if (!currentBgColor || currentBgColor === 'transparent') {
+                        bgColorPicker.value = '#FFFFFF'; 
+                    } else {
+                        // Attempt to convert if it's rgb() e.g. from saved state
+                        if (currentBgColor.startsWith('rgb')) {
+                            try {
+                                const rgbValues = currentBgColor.match(/\d+/g).map(Number);
+                                bgColorPicker.value = `#${rgbValues[0].toString(16).padStart(2, '0')}${rgbValues[1].toString(16).padStart(2, '0')}${rgbValues[2].toString(16).padStart(2, '0')}`;
+                            } catch (e) { bgColorPicker.value = '#FFFFFF'; }
+                        } else {
+                           bgColorPicker.value = currentBgColor;
+                        }
+                    }
+                }
+                
+                // Lighting - Shadows
+                if (shadowIntensityRange) shadowIntensityRange.value = modelViewerElement.shadowIntensity;
+                if (shadowIntensityValueInput) shadowIntensityValueInput.value = modelViewerElement.shadowIntensity;
+                if (shadowSoftnessRange) shadowSoftnessRange.value = modelViewerElement.shadowSoftness;
+                if (shadowSoftnessValueInput) shadowSoftnessValueInput.value = modelViewerElement.shadowSoftness;
+
+                // Populate material select dropdown (Addresses TODO #1)
+                populateMaterialSelect();
+                // Setup hotspot listener AFTER model is loaded (Addresses TODO #1)
+                setupModelViewerEventListeners(); 
 
             }, { once: true }); // Ensure listener runs only once per model load
 
@@ -231,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (posterPreview) {
                 posterPreview.innerHTML = '<span class="poster-icon-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span><span>No poster</span>';
             }
+            currentHDRName = null; // Reset HDR name when new GLB is loaded (TODO #9)
 
             // Populate material select dropdown
             populateMaterialSelect();
@@ -241,7 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modelViewerElement) {
                 const objectURL = URL.createObjectURL(file);
                 modelViewerElement.setAttribute('environment-image', objectURL);
-                if (skyboxEnvCheckbox && skyboxEnvCheckbox.checked) { // If skybox was using old env, update it
+                currentHDRName = fileName; // Store HDR name (TODO #9)
+                if (skyboxEnvCheckbox && skyboxEnvCheckbox.checked) { 
                     modelViewerElement.skyboxImage = objectURL;
                 }
                 console.log(`HDR file ${fileName} loaded as environment image.`);
@@ -865,11 +913,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 hotspotDiv.slot = newHotspotId;
                 hotspotDiv.dataset.position = newHotspotData.position;
                 hotspotDiv.dataset.normal = newHotspotData.normal;
+                if (newHotspotData.openOnLoad) { // Addresses TODO #6
+                    hotspotDiv.setAttribute('open', '');
+                }
+                let linkHTML = ''; // Addresses TODO #5
+                if (newHotspotData.link) {
+                    constlinkLabel = newHotspotData.linkLabel || newHotspotData.link;
+                    linkHTML = `<p><a href="${newHotspotData.link}" target="_blank">${linkLabel}</a></p>`;
+                }
                 hotspotDiv.innerHTML = `
                     <div class="hotspot-visual-cue"></div>
                     <div class="hotspot-content-wrapper">
                         <strong>${newHotspotData.title}</strong>
                         <p>${newHotspotData.text}</p>
+                        ${linkHTML}
                     </div>
                 `;
                 modelViewerElement.appendChild(hotspotDiv);
@@ -981,14 +1038,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hotspotDiv = modelViewerElement.querySelector(`[slot="${currentData.id}"]`);
                 if (hotspotDiv) {
                     // Rebuild innerHTML if title/text changes to keep structure
+                    let linkHTML = ''; // Addresses TODO #5
+                    if (currentData.link) {
+                        constlinkLabel = currentData.linkLabel || currentData.link;
+                        linkHTML = `<p><a href="${currentData.link}" target="_blank">${linkLabel}</a></p>`;
+                    }
                     hotspotDiv.innerHTML = `
                         <div class="hotspot-visual-cue"></div>
                         <div class="hotspot-content-wrapper">
                             <strong>${currentData.title}</strong>
                             <p>${currentData.text}</p>
+                            ${linkHTML}
                         </div>
                     `;
-                    // TODO: Add link if present
                 }
             });
         }
@@ -997,9 +1059,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if(hotspotOpenOnLoadCheckbox) {
         hotspotOpenOnLoadCheckbox.addEventListener('change', () => {
             if (currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) return;
-            hotspotsArray[currentHotspotIndex].openOnLoad = hotspotOpenOnLoadCheckbox.checked;
-            // TODO: Logic to actually show/hide hotspot div content on load based on this.
-            // This might involve adding/removing a class or changing styles of the hotspot div.
+            const hotspotData = hotspotsArray[currentHotspotIndex];
+            hotspotData.openOnLoad = hotspotOpenOnLoadCheckbox.checked;
+            
+            const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotData.id}"]`);
+            if (hotspotDiv) { // Addresses TODO #6
+                if (hotspotData.openOnLoad) {
+                    hotspotDiv.setAttribute('open', '');
+                } else {
+                    hotspotDiv.removeAttribute('open');
+                }
+            }
         });
     }
 
@@ -1068,8 +1138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // TODO: Initial state of hotspot controls (e.g., if a hotspot is pre-selected or loading from saved data)
-
     // --- Save Project State Logic ---
     if (savePublishBtn) {
         savePublishBtn.addEventListener('click', () => {
@@ -1087,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 environmentInfo: {
                     source: modelViewerElement.environmentImage || 'default',
-                    hdrName: null // TODO: Store HDR name if loaded from file
+                    hdrName: currentHDRName // Store HDR name (TODO #9)
                 },
                 posterDataUrl: posterPreview.querySelector('img')?.src || null,
                 camera: {
@@ -1243,11 +1311,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     hotspotDiv.slot = hotspotData.id;
                     hotspotDiv.dataset.position = hotspotData.position;
                     hotspotDiv.dataset.normal = hotspotData.normal;
+                    if (hotspotData.openOnLoad) { // Addresses TODO #6
+                        hotspotDiv.setAttribute('open', '');
+                    }
+                    let linkHTML = ''; // Addresses TODO #5
+                    if (hotspotData.link) {
+                        constlinkLabel = hotspotData.linkLabel || hotspotData.link;
+                        linkHTML = `<p><a href="${hotspotData.link}" target="_blank">${linkLabel}</a></p>`;
+                    }
                     hotspotDiv.innerHTML = `
                         <div class="hotspot-visual-cue"></div>
                         <div class="hotspot-content-wrapper">
                             <strong>${hotspotData.title}</strong>
                             <p>${hotspotData.text}</p>
+                            ${linkHTML}
                         </div>
                     `;
                     modelViewerElement.appendChild(hotspotDiv);
@@ -1290,76 +1367,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Function to Update Scale Input ---
     function updateScaleInput() {
-        if (modelViewerElement && scaleInput) {
-            const scaleString = modelViewerElement.scale || "1 1 1";
-            const scaleParts = scaleString.split(' ').map(parseFloat);
-            // Assuming uniform scaling for now, use the first value
-            const scaleValue = (scaleParts.length > 0 && !isNaN(scaleParts[0])) ? scaleParts[0] : 1.0;
-            currentModelScale = { 
-                x: scaleValue, // Store uniform scale for simplicity for now
-                y: scaleValue,
-                z: scaleValue
-            };
-            scaleInput.value = scaleValue.toFixed(Math.max(2, (scaleValue.toString().split('.')[1] || '').length)); // Show at least 2 decimals
-            // Disable apply button initially as the input matches the current scale
-            if(applyScaleBtn) applyScaleBtn.disabled = true;
+        if (modelViewerElement && modelViewerElement.loaded && scaleInput) {
+            // Assuming model initially loads with scale "1 1 1" or we get it if available
+            const currentScale = modelViewerElement.scale ? modelViewerElement.scale.split(' ') : ['1', '1', '1'];
+            // For simplicity, assuming uniform scale for the input, take the x value
+            const representativeScale = parseFloat(currentScale[0]); 
+            scaleInput.value = representativeScale.toFixed(2); // Format to 2 decimal places
+
+            // Store it for comparison
+            currentModelScale.x = representativeScale;
+            currentModelScale.y = parseFloat(currentScale[1]);
+            currentModelScale.z = parseFloat(currentScale[2]);
+
+            if (applyScaleBtn) applyScaleBtn.disabled = true; // Initially disabled as it matches model
         } else if (scaleInput) {
-            scaleInput.value = "1.0";
-            if(applyScaleBtn) applyScaleBtn.disabled = true;
-            scaleInput.disabled = true; // Disable if no model
+            scaleInput.value = '1.00'; // Default if no model
+            if (applyScaleBtn) applyScaleBtn.disabled = true;
         }
     }
     
     // --- Event Listener for Scale Input Changes ---
     if(scaleInput && applyScaleBtn) {
         scaleInput.addEventListener('input', () => {
-            const newScaleValue = parseFloat(scaleInput.value);
-            // Enable Apply button only if the input is a valid positive number 
-            // AND different from the current model scale (using uniform scale comparison for now)
-            if (!isNaN(newScaleValue) && newScaleValue > 0 && newScaleValue !== currentModelScale.x) {
-                applyScaleBtn.disabled = false;
+            // Enable apply button only if model is loaded and value is a valid number
+            if (modelViewerElement && modelViewerElement.loaded && !isNaN(parseFloat(scaleInput.value))) {
+                applyScaleBtn.disabled = parseFloat(scaleInput.value) === currentModelScale.x; // Disable if new scale is same as current (assuming uniform scale for now)
             } else {
                 applyScaleBtn.disabled = true;
             }
         });
+
+        applyScaleBtn.addEventListener('click', () => {
+            if (!modelViewerElement || !modelViewerElement.loaded) return;
+
+            const newScaleValue = parseFloat(scaleInput.value);
+            if (isNaN(newScaleValue) || newScaleValue <= 0) {
+                alert("Please enter a valid positive number for scale.");
+                return;
+            }
+
+            // Assuming uniform scaling for now
+            const newScaleString = `${newScaleValue} ${newScaleValue} ${newScaleValue}`;
+            modelViewerElement.scale = newScaleString;
+            
+            // Update internal current scale tracking
+            currentModelScale.x = newScaleValue;
+            currentModelScale.y = newScaleValue;
+            currentModelScale.z = newScaleValue;
+
+            updateDimensionDisplay(); // Update dimensions after applying scale
+            applyScaleBtn.disabled = true; // Disable after applying
+        });
     }
 
-    // --- Event Listener for Apply Scale Button ---
-    if(applyScaleBtn && scaleInput && document.getElementById('modelViewerContainer')) { 
-         applyScaleBtn.addEventListener('click', () => {
-            // Check again for modelViewerElement existence inside the handler
-            if (!modelViewerElement) {
-                console.error('Apply Scale clicked, but modelViewerElement is null.');
-                return;
-            }
-            
-            const newScaleValue = parseFloat(scaleInput.value);
-            console.log('Attempting to apply scale:', newScaleValue);
+    // Event Listener for Reset Scale Button
+    if (resetScaleBtn && scaleInput && applyScaleBtn) {
+        resetScaleBtn.addEventListener('click', () => {
+            if (!modelViewerElement || !modelViewerElement.loaded) return;
 
-            if (isNaN(newScaleValue) || newScaleValue <= 0) {
-                alert('Please enter a valid positive number for scale.');
-                return;
-            }
+            const defaultScaleValue = 1.0;
+            scaleInput.value = defaultScaleValue.toFixed(2);
 
-            const scaleString = `${newScaleValue} ${newScaleValue} ${newScaleValue}`;
-            console.log('Setting modelViewerElement.scale to:', scaleString);
-            modelViewerElement.scale = scaleString;
-            console.log('Current modelViewerElement.scale attribute after setting:', modelViewerElement.scale);
+            const defaultScaleString = `${defaultScaleValue} ${defaultScaleValue} ${defaultScaleValue}`;
+            modelViewerElement.scale = defaultScaleString;
 
-            // Request update after changing scale
-            modelViewerElement.requestUpdate(); 
-            console.log('Requested model viewer update.');
+            // Update internal current scale tracking
+            currentModelScale.x = defaultScaleValue;
+            currentModelScale.y = defaultScaleValue;
+            currentModelScale.z = defaultScaleValue;
 
-            // Update stored current scale
-            currentModelScale = { x: newScaleValue, y: newScaleValue, z: newScaleValue };
-            
-            // Update dimension display as scale affects getDimensions()
-            // Use a small delay to allow model-viewer to recalculate if needed
-            setTimeout(updateDimensionDisplay, 100);
-
-            // Disable button again after applying
-            applyScaleBtn.disabled = true;
+            updateDimensionDisplay(); // Update dimensions after resetting scale
+            applyScaleBtn.disabled = true; // Disable apply button as scale is now default
         });
+    }
+
+    // --- Dimensions Tab Logic ---
+    function updateDimensionDisplay() {
+        if (modelViewerElement && modelViewerElement.loaded) {
+            const dims = modelViewerElement.getDimensions();
+            // Convert meters to cm and format
+            if(dimensionXSpan) dimensionXSpan.textContent = `${(dims.x * 100).toFixed(1)} cm`;
+            if(dimensionYSpan) dimensionYSpan.textContent = `${(dims.y * 100).toFixed(1)} cm`;
+            if(dimensionZSpan) dimensionZSpan.textContent = `${(dims.z * 100).toFixed(1)} cm`;
+        } else {
+            if(dimensionXSpan) dimensionXSpan.textContent = '-- cm';
+            if(dimensionYSpan) dimensionYSpan.textContent = '-- cm';
+            if(dimensionZSpan) dimensionZSpan.textContent = '-- cm';
+        }
+    }
+
+    // --- Function to Update Scale Input ---
+    function updateScaleInput() {
+        if (modelViewerElement && modelViewerElement.loaded && scaleInput) {
+            // Assuming model initially loads with scale "1 1 1" or we get it if available
+            const currentScale = modelViewerElement.scale ? modelViewerElement.scale.split(' ') : ['1', '1', '1'];
+            // For simplicity, assuming uniform scale for the input, take the x value
+            const representativeScale = parseFloat(currentScale[0]); 
+            scaleInput.value = representativeScale.toFixed(2); // Format to 2 decimal places
+
+            // Store it for comparison
+            currentModelScale.x = representativeScale;
+            currentModelScale.y = parseFloat(currentScale[1]);
+            currentModelScale.z = parseFloat(currentScale[2]);
+
+            if (applyScaleBtn) applyScaleBtn.disabled = true; // Initially disabled as it matches model
+        } else if (scaleInput) {
+            scaleInput.value = '1.00'; // Default if no model
+            if (applyScaleBtn) applyScaleBtn.disabled = true;
+        }
+    }
+
+    // Initialize Dimensions Tab controls if model is already loaded (e.g. state load)
+    if (modelViewerElement) {
+        updateDimensionDisplay();
+        updateScaleInput();
     }
 
 }); 
