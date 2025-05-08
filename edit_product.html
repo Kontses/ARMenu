@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Menu Editor</title>
+    <link rel="stylesheet" href="style_edit_product.css">
+    <!-- Θα προσθέσουμε το script του model-viewer αργότερα -->
+</head>
+<body class="dark-theme"> <!-- Apply dark theme by default based on images -->
+
+    <div class="editor-container">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="back-btn-topbar" onclick="window.location.href='index.html'"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                <span class="file-path-display" id="filePathDisplay">Project Name / Folder / file.glb</span> <!-- Placeholder text -->
+            </div>
+            <div class="topbar-right">
+                <button id="loadStateBtn" title="Load Project State">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+                <button id="themeSwitcherBtn" title="Toggle theme">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-moon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg icon-sun" style="display:none;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="editor-body-wrapper">
+            <section class="three-d-view-area" id="threeDViewArea">
+                <!-- Initial Drop Zone -->
+                <div class="upload-area active" id="uploadArea">
+                     <div class="upload-icon">
+                        <!-- Placeholder Icon (e.g., SVG or Font Icon) -->
+                         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload-cloud"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+                    </div>
+                    <h2>Drag a GLB here!</h2>
+                    <p>And HDRs for lighting.</p>
+                    <p class="file-selection-text">You can also <a href="#" id="fileInputTrigger">click here</a> to open the file selection dialog.</p>
+                    <input type="file" id="glbFileInput" accept=".glb,.hdr" style="display: none;">
+                    <!-- TODO: Add button for sample model download -->
+                </div>
+                <!-- Model Viewer Container (initially hidden) -->
+                <div id="modelViewerContainer" style="width: 100%; height: 100%;">
+                    <!-- <model-viewer> will be added here by JS -->
+                </div>
+            </section>
+
+            <div class="resizer-vertical" id="editorPanelResizer"></div>
+
+            <aside class="editor-panel" id="editorPanel">
+                <div class="panel-tabs">
+                     <!-- Icons need replacement/styling -->
+                    <button class="panel-tab-btn active" data-tab="orbit"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
+                    <button class="panel-tab-btn" data-tab="lighting"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+                    <button class="panel-tab-btn" data-tab="material"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></button>
+                    <button class="panel-tab-btn" data-tab="hotspots"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg></button>
+                    <button class="panel-tab-btn" data-tab="dimensions"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></button>
+                </div>
+                <div class="panel-content-area">
+                    <!-- Orbit Tab Content -->
+                    <div class="panel-tab-content active" id="tab-orbit">
+                         <div class="panel-section open">
+                            <div class="panel-header"><h3>Orbit</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <label for="orbit-center-x">Orbit center:</label>
+                                <div class="vector-inputs">
+                                    <input type="number" id="orbit-center-x" value="0.00" step="0.01"><span>X</span>
+                                    <input type="number" id="orbit-center-y" value="0.00" step="0.01"><span>Y</span>
+                                    <input type="number" id="orbit-center-z" value="0.00" step="0.01"><span>Z</span>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="panel-section open" id="posterSection">
+                             <div class="panel-header"><h3>Initial camera position and poster</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                             <div class="panel-content">
+                                 <div class="poster-preview-container">
+                                     <div class="poster-preview-editor" id="posterPreview">
+                                         <span class="poster-icon-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span>
+                                         <span>No poster</span>
+                                     </div>
+                                     <button class="generate-poster-btn" id="generatePosterBtn" disabled>GENERATE POSTER</button>
+                                 </div>
+                                 <!-- TODO: Add Yaw/Pitch/Zoom controls -->
+                                 <label for="camera-yaw">Camera Orbit:</label>
+                                  <div class="vector-inputs">
+                                      <input type="number" id="camera-yaw" value="0.00" step="1"><span>yaw</span>
+                                      <input type="number" id="camera-pitch" value="75.00" step="1"><span>pitch</span>
+                                  </div>
+                                  <!-- Add refresh button? -->
+                             </div>
+                         </div>
+                    </div>
+                    <!-- Lighting Tab Content -->
+                     <div class="panel-tab-content" id="tab-lighting">
+                         <div class="panel-section open">
+                            <div class="panel-header"><h3>Lighting</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <label for="env-image">Environment Image:</label>
+                                <div class="select-container">
+                                    <select id="env-image"><option>Studio Default</option></select>
+                                    <button class="hdr-btn">HDR</button>
+                                </div>
+                                <label for="exposure">Exposure:</label>
+                                <div class="slider-container">
+                                    <input type="range" id="exposure" min="0" max="2" value="1" step="0.1">
+                                    <input type="number" id="exposure-value" value="1" min="0" max="2" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                         <div class="panel-section open">
+                            <div class="panel-header"><h3>Background</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <label class="checkbox-container"><input type="checkbox" id="skybox-env"> Use Environment as Skybox</label>
+                                <label for="bg-color">Color:</label>
+                                <div class="color-picker-container">
+                                    <input type="color" id="bg-color" value="#FFFFFF"><button class="transparent-btn">Transparent</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Shadows</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <label for="shadow-intensity">Shadow Intensity:</label>
+                                <div class="slider-container">
+                                    <input type="range" id="shadow-intensity" min="0" max="1" value="0" step="0.1">
+                                    <input type="number" id="shadow-intensity-value" value="0" min="0" max="1" step="0.1">
+                                </div>
+                                <label for="shadow-softness">Shadow Softness:</label>
+                                 <div class="slider-container">
+                                    <input type="range" id="shadow-softness" min="0" max="1" value="1" step="0.1">
+                                    <input type="number" id="shadow-softness-value" value="1" min="0" max="1" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Material Tab Content -->
+                    <div class="panel-tab-content" id="tab-material">
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Selected Material</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <select id="materialSelect"><option value="-1">No model loaded</option></select>
+                            </div>
+                        </div>
+
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Base Color</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label>Factor</label>
+                                <div class="control-group">
+                                    <input type="color" id="baseColorFactor" value="#FFFFFF">
+                                    <button class="reset-btn" data-property="baseColorFactor"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label>Texture</label>
+                                <div class="control-group">
+                                    <div class="texture-preview" id="baseColorTexturePreview"></div>
+                                    <button class="reset-btn" data-property="baseColorTexture"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Metallic Roughness</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label for="metallicFactor">Metallic factor</label>
+                                <div class="control-group slider-group">
+                                    <input type="range" id="metallicFactorRange" min="0" max="1" value="1" step="0.01">
+                                    <input type="number" id="metallicFactorValue" min="0" max="1" value="1" step="0.01">
+                                    <button class="reset-btn" data-property="metallicFactor"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label for="roughnessFactor">Roughness factor</label>
+                                <div class="control-group slider-group">
+                                    <input type="range" id="roughnessFactorRange" min="0" max="1" value="1" step="0.01">
+                                    <input type="number" id="roughnessFactorValue" min="0" max="1" value="1" step="0.01">
+                                    <button class="reset-btn" data-property="roughnessFactor"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label>Texture</label>
+                                <div class="control-group">
+                                    <div class="texture-preview" id="metallicRoughnessTexturePreview"></div>
+                                    <button class="reset-btn" data-property="metallicRoughnessTexture"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Normal Map</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label>Texture</label>
+                                <div class="control-group">
+                                    <div class="texture-preview" id="normalTexturePreview"></div>
+                                    <button class="reset-btn" data-property="normalTexture"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Emissive</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label>Factor</label>
+                                <div class="control-group">
+                                    <input type="color" id="emissiveFactor" value="#000000">
+                                    <button class="reset-btn" data-property="emissiveFactor"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label>Texture</label>
+                                <div class="control-group">
+                                    <div class="texture-preview" id="emissiveTexturePreview"></div>
+                                    <button class="reset-btn" data-property="emissiveTexture"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                         <div class="panel-section open">
+                            <div class="panel-header"><h3>Occlusion</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label>Texture</label>
+                                <div class="control-group">
+                                    <div class="texture-preview" id="occlusionTexturePreview"></div>
+                                    <button class="reset-btn" data-property="occlusionTexture"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Transparency</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content material-properties-grid">
+                                <label for="alphaFactor">Alpha</label>
+                                <div class="control-group slider-group">
+                                    <input type="range" id="alphaFactorRange" min="0" max="1" value="1" step="0.01">
+                                    <input type="number" id="alphaFactorValue" min="0" max="1" value="1" step="0.01">
+                                    <button class="reset-btn" data-property="alphaFactor"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label></label> <!-- Empty label for alignment -->
+                                <div class="control-group">
+                                     <label class="checkbox-container full-width-checkbox"><input type="checkbox" id="doubleSided"> Double Sided
+                                        <button class="reset-btn nested-reset-btn" data-property="doubleSided"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                    </label>
+                                </div>
+                                <label for="alphaBlendMode">Alpha Blend Mode:</label>
+                                <div class="control-group">
+                                    <select id="alphaBlendMode">
+                                        <option value="OPAQUE">OPAQUE</option>
+                                        <option value="MASK">MASK</option>
+                                        <option value="BLEND">BLEND</option>
+                                    </select>
+                                    <button class="reset-btn" data-property="alphaBlendMode"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                                <label for="alphaCutoff">Alpha Cutoff:</label>
+                                <div class="control-group">
+                                    <input type="number" id="alphaCutoff" min="0" max="1" value="0.5" step="0.01" class="short-number-input">
+                                    <button class="reset-btn" data-property="alphaCutoff"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Annotations Tab Content - Will be renamed to Hotspots -->
+                    <div class="panel-tab-content" id="tab-hotspots"> <!-- Renamed id -->
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Hotspots</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content">
+                                <button class="add-hotspot-btn" id="addHotspotBtn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    ADD HOTSPOT
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- This section will manage a single selected/active hotspot -->
+                        <div class="panel-section open" id="selectedHotspotControls" style="display: none;"> <!-- Initially hidden -->
+                            <div class="panel-header"><h3>Edit Hotspot</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content hotspot-editor-grid">
+                                <label for="hotspotTitle">Title:</label>
+                                <input type="text" id="hotspotTitle" placeholder="Hotspot Title">
+                                
+                                <label for="hotspotText">Text:</label>
+                                <textarea id="hotspotText" rows="3" placeholder="Hotspot content..."></textarea>
+                                
+                                <label for="hotspotLink">Link:</label>
+                                <input type="text" id="hotspotLink" placeholder="https://example.com">
+                                
+                                <label for="hotspotLinkLabel">Link label:</label>
+                                <input type="text" id="hotspotLinkLabel" placeholder="Learn more">
+                                
+                                <label>Placement:</label>
+                                <div class="placement-grid" id="hotspotPlacementGrid">
+                                    <button data-placement="top-left">↖</button>
+                                    <button data-placement="top-center">↑</button>
+                                    <button data-placement="top-right">↗</button>
+                                    <button data-placement="middle-left">←</button>
+                                    <button data-placement="middle-center">◎</button> <!-- Center dot -->
+                                    <button data-placement="middle-right">→</button>
+                                    <button data-placement="bottom-left">↙</button>
+                                    <button data-placement="bottom-center">↓</button>
+                                    <button data-placement="bottom-right">↘</button>
+                                </div>
+
+                                <label></label> <!-- Empty for alignment -->
+                                <div class="hotspot-options">
+                                    <label class="checkbox-container"><input type="checkbox" id="hotspotOpenOnLoad"> Open on load</label>
+                                </div>
+
+                                <label>Actions:</label>
+                                <div class="hotspot-actions">
+                                     <button class="icon-btn" id="repositionHotspotBtn" title="Reposition Hotspot"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M17.657 16.657l-1.414-1.414 M19.071 15.243l1.414 1.414M15.243 19.071l1.414 1.414M16.657 17.657l-1.414 1.414 M6.343 8.343l1.414 1.414M4.929 9.757L3.515 8.343M9.757 4.929L8.343 3.515M8.343 6.343l1.414-1.414"/><path d="M12 22v-2M12 4V2M22 12h-2M4 12H2"/></svg></button>
+                                    <button class="icon-btn danger-btn" id="deleteHotspotBtn" title="Delete Hotspot"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Settings Tab Content -->
+                    <div class="panel-tab-content" id="tab-dimensions">
+                        <div class="panel-section open">
+                            <div class="panel-header"><h3>Physical dimensions</h3><span class="toggle-arrow"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><polyline points="18 15 12 9 6 15"></polyline></svg></span></div>
+                            <div class="panel-content dimensions-grid"> 
+                                <label>X:</label> 
+                                <span class="dimension-display" id="dimensionX">-- cm</span> 
+                                <label>Y:</label> 
+                                <span class="dimension-display" id="dimensionY">-- cm</span>
+                                <label>Z:</label> 
+                                <span class="dimension-display" id="dimensionZ">-- cm</span>
+                                
+                                <label for="scaleInput">Scale:</label> 
+                                <div class="scale-controls">
+                                     <input type="number" id="scaleInput" value="1.0" step="0.01" min="0.01">
+                                     <button id="applyScaleBtn" disabled>APPLY</button> 
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="editor-panel-footer">
+                    <div class="export-options-editor">
+                        <span id="footer-load-model"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Load a model</span>
+                        <span id="footer-set-name"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Set a valid project name</span>
+                        <span id="footer-create-poster"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Create a poster</span>
+                    </div>
+                    <button class="save-publish-btn" disabled>SAVE AND PUBLISH</button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Model Viewer Script -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
+    <script src="app_edit_product.js"></script>
+</body>
+</html> 

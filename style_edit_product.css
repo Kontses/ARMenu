@@ -1,0 +1,1009 @@
+/* General Body Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; /* Prevent body scroll, individual panels will scroll */
+}
+
+/* Theme Variables */
+:root {
+    --background-color: #1e1e1e;
+    --text-color: #d4d4d4;
+    --primary-accent: #007acc;
+    --secondary-accent: #60c0ff;
+    --border-color: #333333;
+    --panel-background: #252526;
+    --input-background: #3c3c3c;
+    --input-text-color: #d4d4d4;
+    --button-background: #3a3d41;
+    --button-hover-background: #4a4d51;
+    --button-text-color: #ffffff;
+    --icon-color: #cccccc;
+    --icon-hover-color: #ffffff;
+    --disabled-opacity: 0.5;
+    --active-tab-background: #333333;
+    --scrollbar-thumb-color: #555;
+    --scrollbar-track-color: #333;
+    --dropzone-border-color: #444;
+    --dropzone-background-color: #2a2a2a;
+    --dropzone-text-color: #888;
+    --link-color: var(--secondary-accent);
+    /* Theme switcher specific vars for dark theme (matching style.css dark) */
+    --theme-switcher-bg: #2c2c2c;
+    --theme-switcher-color: #e0e0e0;
+    --theme-switcher-border: #555;
+}
+
+/* Light Theme (Optional - if a switcher is added later) */
+.light-theme {
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --border-color: #dddddd;
+    --panel-background: #f3f3f3;
+    --input-background: #eeeeee;
+    --input-text-color: #333333;
+    --button-background: #e0e0e0;
+    --button-hover-background: #d0d0d0;
+    --button-text-color: #333333;
+    --icon-color: #555555;
+    --icon-hover-color: #000000;
+    --active-tab-background: #e0e0e0;
+    --scrollbar-thumb-color: #aaa;
+    --scrollbar-track-color: #ddd;
+    --dropzone-border-color: #ccc;
+    --dropzone-background-color: #f9f9f9;
+    --dropzone-text-color: #666;
+    /* Theme switcher specific vars for light theme (matching style.css light) */
+    --theme-switcher-bg: #f0f0f0;
+    --theme-switcher-color: #333;
+    --theme-switcher-border: #ccc;
+}
+
+/* Editor Container */
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+/* Topbar Styles */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px; /* Match index.html header padding */
+    background-color: var(--panel-background); /* Assuming panel-background is desired or use a shared var if index.html's header-bg is different and should be matched */
+    border-bottom: 1px solid var(--border-color);
+    height: auto; /* Allow height to be determined by content, like index.html */
+    /* min-height: 48px; */ /* Can set a min-height if needed */
+    box-sizing: border-box;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Match potential gap in index.html header-actions */
+}
+
+.back-btn-topbar, .edit-name-btn, .icon-btn-topbar {
+    background: none;
+    border: none;
+    color: var(--icon-color);
+    font-size: 1.3em; /* Make icons a bit larger */
+    cursor: pointer;
+    padding: 5px;
+}
+
+.back-btn-topbar:hover, .edit-name-btn:hover, .icon-btn-topbar:hover {
+    color: var(--icon-hover-color);
+}
+
+.project-name-input {
+    background-color: var(--input-background);
+    color: var(--input-text-color);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 1em;
+    min-width: 200px;
+}
+
+/* New style for file path display */
+.file-path-display {
+    color: var(--text-color); /* Use standard text color */
+    font-size: 1em;
+    /* padding: 6px 10px; Let's see if this padding is needed or if alignment works without it now */
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; /* Allow it to take available space */
+    margin-left: 5px; /* Add some space from the back button */
+}
+
+.topbar-right span {
+    font-size: 0.9em;
+}
+
+/* Editor Body Wrapper */
+.editor-body-wrapper {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Important for layout */
+    background-color: var(--background-color); /* Fallback for the view area */
+}
+
+/* Resizer Handle */
+.resizer-vertical {
+    width: 5px; /* Width of the resizer line */
+    cursor: col-resize;
+    background-color: var(--border-color); /* Use border color or a slightly more prominent one */
+    /* margin: 0 2px; */ /* Optional small margin if touching elements directly is not desired */
+    flex-shrink: 0; /* Prevent resizer from shrinking */
+    z-index: 10; /* Ensure it's above other elements if needed */
+}
+.resizer-vertical:hover {
+    background-color: var(--primary-accent); /* Highlight on hover */
+}
+
+/* 3D View Area */
+.three-d-view-area {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* For absolute positioning of model-viewer or drop zone */
+    background-color: var(--background-color); /* Darker than panel for contrast */
+    overflow: hidden; /* Ensure model-viewer doesn't overflow */
+}
+
+.upload-area {
+    display: none; /* Hidden by default, shown by JS */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    max-width: 500px;
+    height: auto; /* Adjust as needed, or set fixed */
+    padding: 40px;
+    border: 2px dashed var(--dropzone-border-color);
+    border-radius: 8px;
+    background-color: var(--dropzone-background-color);
+    text-align: center;
+    color: var(--dropzone-text-color);
+}
+
+.upload-area.active {
+    display: flex;
+}
+
+.upload-area h2 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    color: var(--text-color);
+}
+
+.upload-area p {
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.upload-icon svg {
+    width: 64px;
+    height: 64px;
+    stroke: var(--dropzone-text-color);
+    margin-bottom: 10px;
+}
+
+.file-selection-text a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+.file-selection-text a:hover {
+    text-decoration: underline;
+}
+
+#modelViewerContainer {
+    width: 100%;
+    height: 100%;
+    display: none; /* Initially hidden. JS will change this to flex or block when a model is loaded. */
+    justify-content: center; /* To center the model-viewer element itself when visible */
+    align-items: center;     /* To center the model-viewer element itself when visible */
+}
+
+model-viewer {
+    width: 100%;
+    height: 100%;
+    background-color: transparent; /* Ensure it doesn't override the area's bg */
+}
+
+
+/* Editor Panel (Right Sidebar) */
+.editor-panel {
+    width: 320px; /* Fixed width for the panel - JS will override this */
+    min-width: 280px; /* Prevent it from becoming too small */
+    max-width: 600px; /* Prevent it from becoming too large - adjust as needed */
+    background-color: var(--panel-background);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent panel itself from scrolling, content area will scroll */
+}
+
+.panel-tabs {
+    display: flex;
+    background-color: var(--background-color); /* Slightly different from panel content for separation */
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-tab-btn {
+    flex-grow: 1;
+    padding: 12px 10px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent; /* For active state */
+    color: var(--icon-color);
+    cursor: pointer;
+    font-size: 1.4em; /* Larger icons for tabs */
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.panel-tab-btn:hover {
+    background-color: var(--button-hover-background);
+}
+
+.panel-tab-btn.active {
+    color: var(--secondary-accent);
+    border-bottom-color: var(--secondary-accent);
+    background-color: var(--active-tab-background);
+}
+
+.panel-content-area {
+    flex-grow: 1;
+    overflow-y: auto; /* Allow scrolling for tab content */
+    padding: 0;
+}
+
+.panel-tab-content {
+    display: none;
+    padding: 15px; /* Padding inside each tab's content */
+}
+
+.panel-tab-content.active {
+    display: block;
+}
+
+.panel-section {
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--input-background); /* Slightly darker header for sections */
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+.panel-section.open .panel-header {
+     border-bottom: 1px solid var(--border-color);
+}
+.panel-section:last-child .panel-header {
+    border-bottom: none; /* Remove border if section is closed and it's the last one */
+}
+.panel-section.open:last-child .panel-header {
+    border-bottom: 1px solid var(--border-color); /* Add back if open */
+}
+
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 0.95em;
+    font-weight: 600;
+}
+
+.toggle-arrow {
+    font-size: 0.8em;
+    transition: transform 0.2s ease;
+}
+
+.panel-section:not(.open) .toggle-arrow {
+    transform: rotate(-90deg);
+}
+
+.panel-content {
+    padding: 12px;
+    display: grid; /* Use grid for better alignment of labels and inputs */
+    gap: 10px;
+}
+
+.panel-section:not(.open) .panel-content {
+    display: none;
+}
+
+/* Form Elements Styling */
+label {
+    font-size: 0.9em;
+    margin-bottom: 2px; /* Reduced margin */
+    display: block; /* Ensure it takes full width if needed */
+}
+
+.vector-inputs {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.vector-inputs input[type="number"] {
+    /* flex-grow: 1; */ /* Removed to prevent excessive stretching */
+    width: 60px;    /* Set a fixed width, same as slider number inputs */
+    min-width: 50px; /* Keep a min-width or adjust as needed */
+    flex-shrink: 0; /* Prevent shrinking if container is too small */
+}
+
+.vector-inputs span {
+    font-size: 0.85em;
+    color: var(--text-color);
+    margin-left: -2px; /* Adjust to align with input border */
+    margin-right: 5px;
+}
+
+
+input[type="text"],
+input[type="number"],
+select {
+    background-color: var(--input-background);
+    color: var(--input-text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    width: 100%;
+    box-sizing: border-box;
+}
+input[type="number"] {
+    -moz-appearance: textfield; /* Firefox */
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.select-container {
+    display: flex;
+    gap: 5px;
+}
+.select-container select {
+    flex-grow: 1;
+}
+.hdr-btn {
+    padding: 8px 12px;
+    font-size: 0.85em;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slider-container input[type="range"] {
+    flex-grow: 1;
+    padding: 0; /* Remove default padding for range */
+    accent-color: var(--primary-accent);
+}
+.slider-container input[type="number"] {
+    width: 60px; /* Fixed width for number input next to slider */
+    min-width: 60px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+.checkbox-container input[type="checkbox"] {
+    margin-right: 8px;
+    width: auto; /* Don't make checkbox full width */
+    accent-color: var(--primary-accent);
+}
+
+.color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.color-picker-container input[type="color"] {
+    padding: 2px; /* Small padding for color input */
+    height: 35px; /* Match other input height */
+    width: 60px;
+    min-width: 60px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background); /* Ensure consistent background */
+}
+.transparent-btn {
+    font-size: 0.85em;
+    padding: 8px 10px;
+}
+
+/* Poster Specific Styles */
+.poster-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+.poster-preview-editor {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* Common aspect ratio for previews */
+    background-color: var(--input-background);
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--dropzone-text-color);
+    font-size: 0.9em;
+}
+.poster-icon-placeholder {
+    font-size: 2.5em; /* Larger icon for poster area */
+    margin-bottom: 5px;
+}
+.poster-preview-editor img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.generate-poster-btn, .save-publish-btn, .hdr-btn, .transparent-btn {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: center;
+    width: 100%; /* Make buttons full width within their context */
+    transition: background-color 0.2s ease;
+}
+
+.generate-poster-btn:hover, .save-publish-btn:hover, .hdr-btn:hover, .transparent-btn:hover {
+    background-color: var(--button-hover-background);
+}
+
+.generate-poster-btn:disabled, .save-publish-btn:disabled {
+    opacity: var(--disabled-opacity);
+    cursor: not-allowed;
+}
+
+
+/* Editor Panel Footer */
+.editor-panel-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--background-color); /* Match tab bar bg */
+}
+.export-options-editor {
+    font-size: 0.8em;
+    color: var(--text-color); /* Softer color for warnings */
+    margin-bottom: 10px;
+}
+.export-options-editor span {
+    display: block;
+    margin-bottom: 4px;
+    opacity: 0.7; /* Default to slightly faded */
+}
+.export-options-editor span.visible { /* JS will add this class if condition not met */
+    opacity: 1;
+    color: #ffc107; /* Warning color */
+}
+
+
+/* Scrollbar Styling (for Webkit browsers) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-color);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #777; /* Slightly lighter on hover */
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 900px) { /* Point where editor panel might be too wide */
+    .editor-body-wrapper {
+        flex-direction: column; /* Stack 3D view and panel */
+    }
+
+    .editor-panel {
+        width: 100%; /* Full width on smaller screens */
+        height: 45vh; /* Fixed portion of viewport height, or use max-height */
+        min-width: unset;
+        border-left: none;
+        border-top: 1px solid var(--border-color); /* Add border to top when stacked */
+    }
+
+    .three-d-view-area {
+        height: 55vh; /* Remaining height */
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        padding: 8px 10px;
+    }
+    .project-name-input {
+        min-width: 120px; /* Allow it to shrink more */
+        font-size: 0.9em;
+    }
+    .topbar-left .edit-name-btn {
+        display: none; /* Hide edit name button on very small screens if needed */
+    }
+    .topbar-right span {
+        display: none; /* Hide "Show:" text */
+    }
+
+    .panel-tabs {
+        /* Could make tabs scrollable horizontally if too many, or reduce padding */
+    }
+    .panel-tab-btn {
+        font-size: 1.2em; /* Slightly smaller icons */
+        padding: 10px 8px;
+    }
+
+    .panel-content, .editor-panel-footer {
+        padding: 10px;
+    }
+
+    .poster-preview-editor {
+        /* Consider a smaller aspect ratio or max-height */
+    }
+}
+
+/* Helper class for SVGs used as icons */
+.icon-svg {
+    width: 1em; /* Inherit size from parent's font-size */
+    height: 1em;
+    vertical-align: -0.125em; /* Fine-tune vertical alignment */
+    /* stroke-width is usually set directly in the SVG markup for icons like Feather */
+}
+
+/* Style for the new theme switcher button - to match index.html */
+#themeSwitcherBtn {
+    background-color: var(--theme-switcher-bg, var(--button-background)); /* Fallback to button-background if --theme-switcher-bg isn't defined in this file's :root */
+    color: var(--theme-switcher-color, var(--button-text-color));
+    border: 1px solid var(--theme-switcher-border, var(--border-color));
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2em; /* Match typical icon button size */
+    display: flex; /* To center icon if needed */
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* Ensure icon vertical alignment */
+}
+
+#themeSwitcherBtn:hover {
+    background-color: var(--button-hover-background); /* Use a general hover, or define specific --theme-switcher-hover-bg */
+}
+
+#themeSwitcherBtn .icon-svg {
+    width: 1.2em; /* Ensure SVGs scale well if font-size changes */
+    height: 1.2em;
+}
+
+/* Styles for Material Tab */
+.material-properties-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label and control group */
+    gap: 8px 12px; /* Row gap and column gap */
+    align-items: center;
+}
+
+.material-properties-grid label {
+    text-align: right;
+    font-size: 0.85em;
+    align-self: center; /* Ensure labels are centered with their control group */
+}
+
+.material-properties-grid .control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* min-width: 0; */ /* Add this if flex items are causing overflow unexpectedly */
+}
+
+.material-properties-grid .texture-preview {
+    width: 40px;
+    height: 40px;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    color: var(--dropzone-text-color);
+    overflow: hidden; /* For potential img child */
+}
+.material-properties-grid .texture-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
+
+
+.material-properties-grid input[type="color"] {
+    width: 40px; /* Compact color picker */
+    height: 40px;
+    padding: 2px;
+}
+
+.material-properties-grid .slider-group {
+    flex-grow: 1; /* Allow slider group to take more space */
+}
+
+.material-properties-grid .slider-group input[type="range"] {
+    flex-grow: 1;
+}
+.material-properties-grid .slider-group input[type="number"] {
+    width: 60px; /* Consistent with other number inputs next to sliders */
+    min-width: 60px;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.reset-btn {
+    background: none;
+    border: none;
+    color: var(--icon-color);
+    padding: 4px;
+    cursor: pointer;
+    font-size: 1.1em; /* Adjust as needed */
+    line-height: 1;
+    flex-shrink: 0; /* Prevent reset buttons from shrinking */
+}
+.reset-btn:hover {
+    color: var(--icon-hover-color);
+}
+
+.full-width-checkbox {
+    grid-column: 2 / -1; /* Make checkbox span the control column */
+    display: flex; /* To align checkbox, label, and nested button */
+    justify-content: space-between; /* Push nested button to the right */
+    align-items: center;
+}
+
+.nested-reset-btn {
+    margin-left: auto; /* Push it to the far right of the checkbox label container */
+}
+
+.short-number-input {
+    width: 70px !important; /* For Alpha Cutoff */
+    min-width: 60px !important;
+}
+
+#materialSelect {
+    width: 100%; /* Make material select full width */
+}
+
+/* Styles for Hotspots Tab */
+.add-hotspot-btn {
+    background-color: var(--primary-accent);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+}
+.add-hotspot-btn:hover {
+    background-color: var(--secondary-accent); /* Or a darker shade of primary */
+}
+.add-hotspot-btn .icon-svg {
+    stroke-width: 2.5; /* Make plus icon a bit bolder */
+}
+
+.hotspot-editor-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label and control */
+    gap: 10px 12px;
+    align-items: center;
+}
+
+.hotspot-editor-grid label {
+    text-align: right;
+    font-size: 0.85em;
+}
+
+.hotspot-editor-grid input[type="text"],
+.hotspot-editor-grid textarea {
+    width: 100%; /* Make inputs and textarea take full width of their grid cell */
+}
+
+.hotspot-editor-grid textarea {
+    width: 100%; /* Make inputs and textarea take full width of their grid cell */
+    resize: vertical; /* Allow vertical resize only */
+    min-height: 60px;
+    background-color: var(--input-background);
+    color: var(--input-text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 10px; /* Match other inputs */
+    border-radius: 3px; /* Match other inputs */
+    font-family: inherit; /* Ensure font consistency */
+    font-size: 0.9em; /* Match other inputs */
+    box-sizing: border-box;
+}
+
+.placement-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    max-width: 120px; /* Constrain width of the grid */
+}
+
+.placement-grid button {
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.2em; /* Larger icons for placement */
+    line-height: 1;
+    aspect-ratio: 1 / 1; /* Make buttons square */
+}
+
+.placement-grid button:hover {
+    background-color: var(--button-hover-background);
+    border-color: var(--primary-accent);
+}
+.placement-grid button.active {
+    background-color: var(--primary-accent);
+    color: white;
+    border-color: var(--primary-accent);
+}
+
+.hotspot-options {
+    grid-column: 2 / -1; /* Span the control column */
+}
+
+.hotspot-actions {
+    grid-column: 2 / -1; /* Span the control column */
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.hotspot-actions .icon-btn {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+.hotspot-actions .icon-btn:hover {
+    background-color: var(--button-hover-background);
+}
+.hotspot-actions .danger-btn {
+    background-color: #c82333; /* A distinct danger color */
+    border-color: #bd2130;
+    color: white;
+}
+.hotspot-actions .danger-btn:hover {
+    background-color: #a21927;
+    border-color: #961622;
+}
+
+
+@media (max-width: 900px) { /* Point where editor panel might be too wide */
+    .editor-body-wrapper {
+        flex-direction: column; /* Stack 3D view and panel */
+    }
+
+    .editor-panel {
+        width: 100%; /* Full width on smaller screens */
+        height: 45vh; /* Fixed portion of viewport height, or use max-height */
+        min-width: unset;
+        border-left: none;
+        border-top: 1px solid var(--border-color); /* Add border to top when stacked */
+    }
+
+    .three-d-view-area {
+        height: 55vh; /* Remaining height */
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        padding: 8px 10px;
+    }
+    .project-name-input {
+        min-width: 120px; /* Allow it to shrink more */
+        font-size: 0.9em;
+    }
+    .topbar-left .edit-name-btn {
+        display: none; /* Hide edit name button on very small screens if needed */
+    }
+    .topbar-right span {
+        display: none; /* Hide "Show:" text */
+    }
+
+    .panel-tabs {
+        /* Could make tabs scrollable horizontally if too many, or reduce padding */
+    }
+    .panel-tab-btn {
+        font-size: 1.2em; /* Slightly smaller icons */
+        padding: 10px 8px;
+    }
+
+    .panel-content, .editor-panel-footer {
+        padding: 10px;
+    }
+
+    .poster-preview-editor {
+        /* Consider a smaller aspect ratio or max-height */
+    }
+}
+
+/* Styles for Hotspot Annotations on the model */
+.hotspot-annotation {
+    /* display: flex; */ /* Use flex to align visual cue and content */
+    /* align-items: center; */ /* Vertically center items if they have different heights */
+    /* gap: 8px; */ /* Space between visual cue and content */
+
+    /* pointer-events: none; */ /* Parent div should not catch pointer events */
+    /* Individual interactive elements inside will have pointer-events: auto; */
+    opacity: 1 !important; /* Override model-viewer default opacity */
+}
+
+/*
+.hotspot-visual-cue {
+    width: 24px;
+    height: 24px;
+    background-color: var(--primary-accent, #007acc);
+    border: 2px solid white; 
+    border-radius: 50%; 
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px; 
+    pointer-events: auto; 
+    cursor: pointer;
+    flex-shrink: 0; 
+}
+
+.hotspot-visual-cue::before {
+    content: "-"; 
+}
+
+.hotspot-content-wrapper {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #cccccc;
+    padding: 8px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    color: #333;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 220px;
+    pointer-events: auto; 
+}
+
+.hotspot-content-wrapper strong {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 1.05em;
+}
+
+.hotspot-content-wrapper p {
+    margin: 0;
+}
+*/
+
+/* Styles for Dimensions Tab */
+.dimensions-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Label and control */
+    gap: 10px 12px; /* Match hotspot editor grid */
+    align-items: center;
+}
+
+.dimensions-grid label {
+    text-align: right;
+    font-size: 0.85em;
+}
+
+.dimension-display {
+    font-family: monospace; /* Give dimensions a distinct look */
+    font-size: 0.95em;
+    background-color: var(--input-background);
+    padding: 6px 10px;
+    border-radius: 3px;
+    color: var(--input-text-color);
+    border: 1px solid var(--border-color);
+    min-width: 80px; /* Ensure some minimum width */
+    display: inline-block;
+    text-align: right;
+}
+
+.scale-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    grid-column: 2 / -1; /* Span the control column */
+}
+
+.scale-controls input[type="number"] {
+    width: 80px; /* Fixed width for scale input */
+    flex-shrink: 0;
+}
+
+.scale-controls button {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 15px; /* Match other inputs height */
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    /* width: auto; Let button size itself */
+    transition: background-color 0.2s ease;
+}
+
+.scale-controls button:hover {
+    background-color: var(--button-hover-background);
+}
+
+.scale-controls button:disabled {
+    opacity: var(--disabled-opacity);
+    cursor: not-allowed;
+} 

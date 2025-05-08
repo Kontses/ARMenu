@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Menu Products</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- TODO: Add icon library like Font Awesome -->
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-title">
+                <h1>Προϊόντα</h1>
+                <button class="add-btn" id="addBtn">+</button>
+                <div class="add-options-menu" id="addOptionsMenu">
+                    <button id="createProductBtn">
+                        <span class="menu-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 16.5001V7.50008C21 6.91343 20.5557 6.44282 19.9734 6.37834L12.9734 5.6014C12.3998 5.53803 11.6002 5.53803 11.0266 5.6014L4.02663 6.37834C3.44432 6.44282 3 6.91343 3 7.50008V16.5001C3 17.0867 3.44432 17.5573 4.02663 17.6218L11.0266 18.3987C11.6002 18.4621 12.3998 18.4621 12.9734 18.3987L19.9734 17.6218C20.5557 17.5573 21 17.0867 21 16.5001ZM12 6.86365L18.9991 7.60008V15.509L12 16.1365V6.86365ZM5.00093 7.60008L12 6.86365V16.1365L5.00093 15.509V7.60008Z"/></svg>
+                        </span> Product
+                    </button>
+                    <button id="createFolderBtn">
+                        <span class="menu-icon">📁</span> Folder
+                    </button>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="view-toggle">
+                    <button id="list-view-btn">☰</button>
+                    <button id="grid-view-btn" class="active">▦</button>
+                </div>
+                <div class="search-container">
+                    <input type="search" id="searchInput" placeholder="Αναζήτηση..." class="search-bar">
+                    <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">&times;</button>
+                    <button class="search-btn-icon">🔍</button>
+                </div>
+                <button class="theme-switcher-btn" id="themeSwitcherBtn">☀️</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="breadcrumb-bar">
+                <button class="upload-btn">↑</button>
+                <span class="path-display">/HOME</span>
+                <div class="folder-info">
+                    <span class="info-text">0 φάκελοι - 0 προϊόντα</span>
+                    <button class="more-options-btn">⋮</button>
+                </div>
+            </div>
+
+            <div class="list-view-headers" id="listViewHeaders" style="display: none;">
+                <div class="header-item item-select-checkbox"></div>
+                <div class="header-item item-icon-name">Product name</div>
+                <div class="header-item item-configurations">Configurations</div>
+                <div class="header-item item-created">Created</div>
+                <div class="header-item item-share">Share</div>
+                <div class="header-item item-actions">Actions</div>
+            </div>
+
+            <div class="items-display-area grid-view" id="itemsDisplayArea">
+                <!-- Items (folders or products) will be dynamically added here -->
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 

@@ -1,0 +1,583 @@
+:root {
+    --body-bg: #ffffff;
+    --text-color: #333333;
+    --header-border-color: #e0e0e0;
+    --header-title-color: #000000;
+    --button-add-bg: transparent;
+    --button-add-color: #8e8e8e;
+    --button-add-border: #d0d0d0;
+    --button-add-hover-bg: #f0f0f0;
+    --view-toggle-bg: #f0f0f0;
+    --view-toggle-border: #e0e0e0;
+    --view-toggle-color: #555555;
+    --view-toggle-active-bg: #e0e0e0;
+    --view-toggle-active-color: #000000;
+    --search-bar-border: #e0e0e0;
+    --search-icon-color: #777777;
+    --breadcrumb-text-color: #555555;
+    --folder-info-text-color: #777777;
+    --folder-info-icon-color: #777777;
+    --folder-info-icon-hover-color: #333333;
+    --item-bg: #f8f9fa;
+    --item-border: #e9ecef;
+    --item-hover-shadow: rgba(0,0,0,0.08);
+    --item-hover-border: #ced4da;
+    --item-icon-color: #adb5bd;
+    --item-name-color: #212529;
+    --list-header-border: #dee2e6;
+    --list-header-text: #495057;
+    --list-item-hover-bg: #f8f9fa;
+    --list-item-action-icon: #5f6368;
+    --list-item-action-icon-hover-bg: #e9ecef;
+    --list-item-action-icon-hover-text: #000000;
+    --add-options-menu-bg: white;
+    --add-options-menu-border: #d0d0d0;
+    --add-options-menu-shadow: rgba(0,0,0,0.15);
+    --add-options-menu-item-border: #f0f0f0;
+    --add-options-menu-item-hover-bg: #f5f5f5;
+    --theme-switcher-bg: #f0f0f0;
+    --theme-switcher-color: #333;
+    --theme-switcher-border: #ccc;
+
+}
+
+body.dark-theme {
+    --body-bg: #121212;
+    --text-color: #e0e0e0;
+    --header-border-color: #333333;
+    --header-title-color: #ffffff;
+    --button-add-bg: transparent;
+    --button-add-color: #aaaaaa;
+    --button-add-border: #555555;
+    --button-add-hover-bg: #2a2a2a;
+    --view-toggle-bg: #2c2c2c;
+    --view-toggle-border: #444444;
+    --view-toggle-color: #cccccc;
+    --view-toggle-active-bg: #4a4a4a;
+    --view-toggle-active-color: #ffffff;
+    --search-bar-border: #444444;
+    --search-icon-color: #bbbbbb;
+    --breadcrumb-text-color: #cccccc;
+    --folder-info-text-color: #bbbbbb;
+    --folder-info-icon-color: #bbbbbb;
+    --folder-info-icon-hover-color: #eeeeee;
+    --item-bg: #1e1e1e;
+    --item-border: #333333;
+    --item-hover-shadow: rgba(255,255,255,0.08);
+    --item-hover-border: #555555;
+    --item-icon-color: #777777;
+    --item-name-color: #e0e0e0;
+    --list-header-border: #444444;
+    --list-header-text: #bbbbbb;
+    --list-item-hover-bg: #2a2a2a;
+    --list-item-action-icon: #aaaaaa;
+    --list-item-action-icon-hover-bg: #383838;
+    --list-item-action-icon-hover-text: #ffffff;
+    --add-options-menu-bg: #2c2c2c;
+    --add-options-menu-border: #444444;
+    --add-options-menu-shadow: rgba(255,255,255,0.1);
+    --add-options-menu-item-border: #383838;
+    --add-options-menu-item-hover-bg: #4a4a4a;
+    --theme-switcher-bg: #2c2c2c;
+    --theme-switcher-color: #e0e0e0;
+    --theme-switcher-border: #555;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center; /* Center the content */
+    padding-top: 20px; /* Add some padding at the top */
+}
+
+.container {
+    width: 90%; /* Using width % for responsiveness */
+    max-width: 1400px; /* Max width like the image */
+    margin: 0 auto;
+    /* padding: 20px; Removed padding to match image more closely */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--header-border-color); /* Lighter border */
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    position: relative; /* Added for positioning the dropdown */
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 28px; /* Slightly larger font */
+    font-weight: 500; /* Medium weight */
+    color: var(--header-title-color);
+}
+
+.header-title .add-btn {
+    margin-left: 15px;
+    background-color: var(--button-add-bg);
+    color: var(--button-add-color);
+    border: 1px solid var(--button-add-border);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 2px; /* Adjust plus position */
+}
+
+.header-title .add-btn:hover {
+    background-color: var(--button-add-hover-bg);
+}
+
+/* Styles for the add options menu */
+.add-options-menu {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 100%; /* Position below the add button */
+    left: 0;
+    background-color: var(--add-options-menu-bg);
+    border: 1px solid var(--add-options-menu-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px var(--add-options-menu-shadow);
+    z-index: 1000;
+    min-width: 150px; /* Minimum width for the menu */
+    margin-top: 5px; /* Small gap from the button */
+}
+
+.add-options-menu.show {
+    display: block; /* Show the menu */
+}
+
+.add-options-menu button {
+    display: flex; /* Use flex for icon and text alignment */
+    align-items: center;
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--add-options-menu-item-border);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-color); /* Use general text color for menu items */
+}
+
+.add-options-menu button:last-child {
+    border-bottom: none;
+}
+
+.add-options-menu button:hover {
+    background-color: var(--add-options-menu-item-hover-bg);
+}
+
+.add-options-menu .menu-icon {
+    margin-right: 10px;
+    font-size: 16px; /* Adjust icon size as needed */
+    width: 20px; /* Fixed width for alignment */
+    text-align: center;
+    /* For SVG icons, fill color might need to be set via CSS or attribute */
+}
+.add-options-menu .menu-icon svg {
+    fill: currentColor; /* Inherit color from button text */
+}
+
+/* End of styles for add options menu */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.view-toggle {
+    display: inline-flex; /* Use inline-flex for button group */
+    vertical-align: middle; /* Helps align with search bar */
+}
+
+.view-toggle button {
+    background: var(--view-toggle-bg);
+    border: 1px solid var(--view-toggle-border);
+    padding: 6px 10px;
+    /* margin-left: -1px; Removed negative margin */
+    cursor: pointer;
+    color: var(--view-toggle-color);
+    border-radius: 0; /* Remove individual radius initially */
+}
+
+.view-toggle button:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    /* margin-left: 0; No longer needed */
+    border-right-width: 0; /* Make right border disappear for seamless connection */
+}
+
+.view-toggle button:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.view-toggle button.active {
+    background-color: var(--view-toggle-active-bg);
+    color: var(--view-toggle-active-color);
+}
+
+.search-container {
+    position: relative; /* Needed for absolute positioning of clear button */
+    display: flex; /* Use flex to keep input and search icon together */
+    align-items: center;
+    margin-left: 20px;
+}
+
+.search-bar {
+    /* margin-left: 20px; Removed, handled by container */
+    padding: 8px 30px 8px 12px; /* Increased right padding for clear button */
+    border: 1px solid var(--search-bar-border);
+    border-radius: 4px;
+    min-width: 200px; 
+    background-color: var(--body-bg); 
+    color: var(--text-color);
+    /* Prevent default browser clear button if it appears */
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+.search-bar::placeholder {
+    color: var(--text-color); 
+    opacity: 0.7;
+}
+
+.clear-search-btn {
+    position: absolute;
+    right: 40px; /* Position before the search icon (adjust as needed) */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--search-icon-color); /* Use same color as search icon or slightly different */
+    cursor: pointer;
+    font-size: 18px; /* Adjust size of 'x' */
+    padding: 0 5px; /* Add some padding around 'x' */
+    display: none; /* Controlled by JS */
+}
+.clear-search-btn:hover {
+     color: var(--text-color); /* Darken on hover */
+}
+
+.search-btn-icon {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    /* margin-left: -30px; No longer needed with flex container */
+    cursor: pointer;
+    color: var(--search-icon-color);
+    padding: 8px;
+    margin-left: -35px; /* Adjust to overlap slightly inside the container if needed */
+    z-index: 2; /* Ensure it's above input */
+}
+
+.breadcrumb-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    /* background-color: white; Removed to match image (no distinct background) */
+    padding: 10px 0; /* Padding top/bottom, no side padding */
+    /* box-shadow: 0 1px 3px rgba(0,0,0,0.1); Removed shadow */
+    color: var(--breadcrumb-text-color); /* Text color for path */
+}
+
+.breadcrumb-bar .upload-btn {
+    background: none;
+    border: none;
+    font-size: 22px; /* Larger icon */
+    margin-right: 8px;
+    cursor: pointer;
+    color: var(--breadcrumb-text-color);
+}
+
+.breadcrumb-bar .path-display {
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.folder-info {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: var(--folder-info-text-color);
+}
+
+.folder-info .info-text {
+    margin-right: 15px;
+}
+
+.folder-info button {
+    background: none;
+    border: none;
+    font-size: 22px; /* Icon size */
+    margin-left: 10px;
+    cursor: pointer;
+    color: var(--folder-info-icon-color);
+}
+
+.folder-info button:hover {
+    color: var(--folder-info-icon-hover-color);
+}
+
+/* Styles for file/folder grid */
+.items-display-area.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+    gap: 20px;
+}
+
+.items-display-area.grid-view .file-item {
+    background-color: var(--item-bg);
+    border: 1px solid var(--item-border);
+    border-radius: 6px;
+    padding: 20px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out;
+    display: flex; /* Use flex for vertical alignment in grid items */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Center content vertically */
+    min-height: 120px; /* Ensure a minimum height for grid items */
+}
+
+.items-display-area.grid-view .file-item:hover {
+    box-shadow: 0 2px 5px var(--item-hover-shadow);
+    border-color: var(--item-hover-border);
+}
+
+.items-display-area.grid-view .file-icon {
+    font-size: 52px;
+    color: var(--item-icon-color);
+    margin-bottom: 12px;
+}
+
+.items-display-area.grid-view .file-name {
+    font-size: 14px;
+    color: var(--item-name-color);
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Hide list-specific elements in grid view */
+.items-display-area.grid-view .item-select-checkbox,
+.items-display-area.grid-view .item-configurations,
+.items-display-area.grid-view .item-created,
+.items-display-area.grid-view .item-share,
+.items-display-area.grid-view .item-actions {
+    display: none;
+}
+
+/* Styles for list view headers */
+.list-view-headers {
+    display: flex;
+    padding: 10px 15px;
+    border-bottom: 2px solid var(--list-header-border);
+    font-weight: 600; /* Bolder headers */
+    font-size: 13px;
+    color: var(--list-header-text);
+    margin-bottom: 5px;
+}
+
+.list-view-headers .header-item {
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+/* Column widths for list view - adjust as needed */
+.item-select-checkbox { flex-basis: 40px; flex-grow: 0; flex-shrink: 0; text-align: center; }
+.item-icon-name { flex-grow: 3; flex-basis: 30%; display: flex; align-items: center;}
+.item-configurations { flex-grow: 1; flex-basis: 15%; text-align: left;}
+.item-created { flex-grow: 1; flex-basis: 15%; text-align: left;}
+.item-share { flex-grow: 1; flex-basis: 15%; text-align: left;}
+.item-actions { flex-grow: 1; flex-basis: 15%; text-align: right; }
+
+/* Styles for items in list view */
+.items-display-area.list-view {
+    display: flex;
+    flex-direction: column;
+}
+
+.items-display-area.list-view .file-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--item-border);
+    transition: background-color 0.15s ease-in-out;
+    cursor: default; /* Default cursor for rows, individual elements can be pointers */
+    background-color: var(--item-bg); /* Use item-bg for list items too */
+}
+
+.items-display-area.list-view .file-item:hover {
+    background-color: var(--list-item-hover-bg);
+}
+
+.items-display-area.list-view .file-icon {
+    font-size: 20px; /* Smaller icon for list view */
+    color: var(--item-icon-color);
+    margin-right: 10px;
+}
+
+.items-display-area.list-view .file-name {
+    font-size: 14px;
+    color: var(--item-name-color);
+    font-weight: 500;
+    word-break: break-word; /* Keep this for long names */
+    cursor: pointer; /* Make name clickable to navigate */
+}
+.items-display-area.list-view .file-name:hover {
+    text-decoration: underline;
+}
+
+
+.items-display-area.list-view .item-select-checkbox input[type="checkbox"] {
+    vertical-align: middle;
+}
+
+/* Show and style list-specific elements in list view */
+.items-display-area.list-view .item-configurations,
+.items-display-area.list-view .item-created,
+.items-display-area.list-view .item-share {
+    font-size: 13px;
+    color: var(--list-header-text);
+    padding: 0 8px;
+    box-sizing: border-box;
+    white-space: nowrap; /* Prevent wrapping in these columns */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.items-display-area.list-view .item-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.items-display-area.list-view .item-actions .action-btn {
+    background: none;
+    border: none;
+    color: var(--list-item-action-icon);
+    font-size: 18px; /* Icon size for actions */
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    border-radius: 4px;
+}
+
+.items-display-area.list-view .item-actions .action-btn:hover {
+    background-color: var(--list-item-action-icon-hover-bg);
+    color: var(--list-item-action-icon-hover-text);
+}
+
+/* Old .file-grid and .file-item styles are now part of .items-display-area.grid-view */
+/*.file-grid { ... }*/
+/*.file-item { ... }*/
+/*.file-icon { ... }*/
+/*.file-name { ... }*/
+
+/* Theme switcher button style */
+.theme-switcher-btn {
+    background-color: var(--theme-switcher-bg);
+    color: var(--theme-switcher-color);
+    border: 1px solid var(--theme-switcher-border);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 15px;
+}
+
+/* Minimal responsive adjustments */
+@media (max-width: 768px) {
+    .header .search-bar {
+        display: none; /* Hide search bar on smaller screens, icon can toggle */
+    }
+    .items-display-area.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+    .header-title h1 {
+        font-size: 22px;
+    }
+
+    /* Responsive for List View Headers - Tablet */
+    .list-view-headers .item-configurations,
+    .list-view-headers .item-share {
+        display: none; /* Hide Configurations and Share headers */
+    }
+
+    /* Responsive for List View Items - Tablet */
+    .items-display-area.list-view .item-configurations,
+    .items-display-area.list-view .item-share {
+        display: none; /* Hide Configurations and Share columns in items */
+    }
+
+    .item-icon-name { flex-grow: 2; flex-basis: 40%;} /* Give more space to name */
+    .item-created { flex-grow: 1; flex-basis: 25%;}
+    .item-actions { flex-grow: 1; flex-basis: 25%;}
+}
+
+@media (max-width: 600px) { /* More aggressive changes for smaller mobile */
+    .items-display-area.grid-view {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+    }
+    .items-display-area.grid-view .file-item {
+        padding: 15px 10px;
+        min-height: 100px;
+    }
+    .items-display-area.grid-view .file-icon {
+        font-size: 40px;
+        margin-bottom: 8px;
+    }
+    .items-display-area.grid-view .file-name {
+        font-size: 13px;
+    }
+
+    .folder-info .info-text {
+        display: none; /* Hide text on very small screens */
+    }
+    .breadcrumb-bar .path-display {
+        font-size: 14px;
+    }
+
+    /* Responsive for List View Headers - Mobile */
+    .list-view-headers .item-created {
+        display: none; /* Hide Created header as well */
+    }
+    .list-view-headers .item-actions {
+        text-align: center; /* Center actions header if only name and actions are left */
+    }
+
+    /* Responsive for List View Items - Mobile */
+    .items-display-area.list-view .item-created {
+        display: none; /* Hide Created column in items as well */
+    }
+    .item-icon-name { flex-grow: 3; flex-basis: 60%;} /* Give even more space to name */
+    .item-actions { flex-grow: 1; flex-basis: 30%;} 
+
+    .items-display-area.list-view .item-actions .action-btn {
+        font-size: 16px; /* Slightly smaller action icons */
+        padding: 3px;
+    }
+} 
