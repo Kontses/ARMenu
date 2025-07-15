@@ -1,0 +1,37 @@
+name: Deploy Frontend to GitHub Pages
+
+on: 
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Or your preferred Node.js version
+
+    - name: Install dependencies (if any for frontend build, e.g., for linters, not strictly needed for vanilla JS)
+      run: npm install # Adjust if your frontend has a package.json
+      working-directory: frontend # Run npm install in the frontend directory if it has its own package.json
+
+    - name: Copy frontend files to root for gh-pages
+      run: |
+        mkdir gh-pages-temp
+        cp -r frontend/* gh-pages-temp/
+        # Optionally, delete node_modules if it was created in the root during build steps and you don't want it pushed
+        # rm -rf node_modules
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: gh-pages-temp # Publish the temporary directory
+        publish_branch: gh-pages # Deploy to gh-pages branch 
