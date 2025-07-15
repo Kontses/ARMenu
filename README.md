@@ -44,7 +44,29 @@
 1.  Βεβαιωθείτε ότι έχετε εγκατεστημένο έναν απλό web server (π.χ., μέσω του Live Server extension στο VS Code, ή με Python, Node.js κ.λπ.).
 2.  Κάντε κλωνοποίηση (clone) του repository ή κατεβάστε τα αρχεία.
 3.  Εκκινήστε τον web server σας στον κύριο φάκελο του project.
-4.  Ανοίξτε το `index.html` στον περιηγητή σας μέσω του τοπικού server (π.χ., `http://127.0.0.1:5500/index.html`).
+4. Ανοίξτε το `index.html` στον περιηγητή σας μέσω του τοπικού server (π.χ., `http://127.0.0.1:5500/index.html`).
+
+### Εκτέλεση Backend (Node.js)
+
+1.  Μεταβείτε στον φάκελο `backend`:
+    ```bash
+    cd backend
+    ```
+2.  Εγκαταστήστε τις εξαρτήσεις (αν δεν το έχετε κάνει ήδη):
+    ```bash
+    npm install
+    ```
+3.  Εκκινήστε τον server:
+    ```bash
+    node server.js
+    ```
+    Ο server θα τρέχει στην πόρτα 5000 (π.χ., `http://localhost:5000`).
+
+### Εκτέλεση Frontend
+
+1.  Βεβαιωθείτε ότι έχετε εγκατεστημένο έναν απλό web server (π.χ., μέσω του Live Server extension στο VS Code, ή με Python, Node.js κ.λπ.) στον κύριο φάκελο του project.
+2.  Ρυθμίστε τον web server σας να τρέχει στην πόρτα 5500.
+3.  Ανοίξτε το `frontend/index.html` στον περιηγητή σας μέσω του τοπικού server (π.χ., `http://localhost:5500/frontend/index.html`).
 
 ## Επόμενα Βήματα / TODOs (Ενδεικτικά)
 

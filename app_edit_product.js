@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isRepositioningHotspot = false; // New state for repositioning
     let currentModelScale = { x: 1, y: 1, z: 1 }; // To store current scale
     let currentHDRName = null; // Added for storing HDR name
+    let currentGlbFile = null; // New: To store the loaded GLB File object
 
     // --- Initial State Updates ---
     updateFooterWarnings();
@@ -178,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fileExtension = fileName.split('.').pop().toLowerCase();
 
         if (fileExtension === 'glb') {
+            currentGlbFile = file; // Store the GLB file object
             currentModelName = fileName;
             const objectURL = URL.createObjectURL(file);
             
@@ -290,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 modelViewerElement.setAttribute('environment-image', objectURL);
                 currentHDRName = fileName; // Store HDR name
                 if (skyboxEnvCheckbox && skyboxEnvCheckbox.checked) { 
-                    modelViewerElement.skyboxImage = objectURL;
+                    modelViewerElement.skyboxImage = modelViewerElement.environmentImage;
                 }
                 console.log(`HDR file ${fileName} loaded as environment image.`);
             } else {
@@ -537,355 +539,210 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Material Tab Logic ---
     function populateMaterialSelect() {
-        if (!modelViewerElement || !modelViewerElement.model || !modelViewerElement.model.materials) {
-            materialSelect.innerHTML = '<option value="-1">Model not loaded or no materials</option>';
-            return;
-        }
+        if (!modelViewerElement || !modelViewerElement.model || !materialSelect) return;
 
-        const materials = modelViewerElement.model.materials;
         materialSelect.innerHTML = ''; // Clear existing options
 
-        if (materials.length === 0) {
-            materialSelect.innerHTML = '<option value="-1">No materials in model</option>';
-            return;
-        }
-
-        materials.forEach((material, index) => {
+        // Add options for each material
+        modelViewerElement.model.materials.forEach((material, index) => {
             const option = document.createElement('option');
             option.value = index.toString();
-            option.textContent = material.name || `Material (${index + 1})`;
+            option.textContent = material.name || `Material ${index + 1}`;
             materialSelect.appendChild(option);
         });
 
-        // Add event listener to materialSelect to display selected material's properties
-        materialSelect.addEventListener('change', handleMaterialSelectionChange);
-
-        // Display properties of the first material by default if materials exist
-        if (materials.length > 0) {
-            displayMaterialProperties(materials[0]);
-        }
+        // Select the first material by default or the previously selected one
+        materialSelect.value = currentMaterialIndex.toString();
+        displayMaterialProperties(getSelectedMaterial()); // Display properties for the default selected material
     }
 
+    // Handle material selection change
     function handleMaterialSelectionChange() {
-        if (!modelViewerElement || !modelViewerElement.model || !materialSelect) return;
-        const selectedIndex = parseInt(materialSelect.value, 10);
-        if (selectedIndex >= 0 && modelViewerElement.model.materials[selectedIndex]) {
-            displayMaterialProperties(modelViewerElement.model.materials[selectedIndex]);
+        currentMaterialIndex = parseInt(materialSelect.value, 10);
+        const material = getSelectedMaterial();
+        if (material) {
+            displayMaterialProperties(material);
         }
     }
+    if (materialSelect) materialSelect.addEventListener('change', handleMaterialSelectionChange);
 
+
+    // Function to display material properties in the UI
     function displayMaterialProperties(material) {
         if (!material) return;
 
-        // Base Color
-        const bcFactor = material.pbrMetallicRoughness.baseColorFactor;
-        if (bcFactor) {
-            baseColorFactorInput.value = `#${Math.round(bcFactor[0]*255).toString(16).padStart(2,'0')}${Math.round(bcFactor[1]*255).toString(16).padStart(2,'0')}${Math.round(bcFactor[2]*255).toString(16).padStart(2,'0')}`;
+        // Base Color Factor
+        const baseColor = material.pbrMetallicRoughness.baseColorFactor;
+        if (baseColorFactorInput && baseColor) {
+            const hex = `#${Math.round(baseColor[0] * 255).toString(16).padStart(2, '0')}${Math.round(baseColor[1] * 255).toString(16).padStart(2, '0')}${Math.round(baseColor[2] * 255).toString(16).padStart(2, '0')}`;
+            baseColorFactorInput.value = hex.toUpperCase();
         }
-        baseColorTexturePreview.textContent = material.pbrMetallicRoughness.baseColorTexture ? 'Texture' : 'No Texture';
 
-        // Metallic Roughness
-        metallicFactorRange.value = material.pbrMetallicRoughness.metallicFactor;
-        metallicFactorValue.value = material.pbrMetallicRoughness.metallicFactor;
-        roughnessFactorRange.value = material.pbrMetallicRoughness.roughnessFactor;
-        roughnessFactorValue.value = material.pbrMetallicRoughness.roughnessFactor;
-        metallicRoughnessTexturePreview.textContent = material.pbrMetallicRoughness.metallicRoughnessTexture ? 'Texture' : 'No Texture';
-
-        // Normal Map
-        normalTexturePreview.textContent = material.normalTexture ? 'Texture' : 'No Texture';
-
-        // Emissive
-        const emissive = material.emissiveFactor;
-        if (emissive) {
-             emissiveFactorInput.value = `#${Math.round(emissive[0]*255).toString(16).padStart(2,'0')}${Math.round(emissive[1]*255).toString(16).padStart(2,'0')}${Math.round(emissive[2]*255).toString(16).padStart(2,'0')}`;
+        // Metallic Factor
+        if (metallicFactorRange && metallicFactorValue) {
+            metallicFactorRange.value = material.pbrMetallicRoughness.metallicFactor;
+            metallicFactorValue.value = material.pbrMetallicRoughness.metallicFactor;
         }
-        emissiveTexturePreview.textContent = material.emissiveTexture ? 'Texture' : 'No Texture';
 
-        // Occlusion
-        occlusionTexturePreview.textContent = material.occlusionTexture ? 'Texture' : 'No Texture';
+        // Roughness Factor
+        if (roughnessFactorRange && roughnessFactorValue) {
+            roughnessFactorRange.value = material.pbrMetallicRoughness.roughnessFactor;
+            roughnessFactorValue.value = material.pbrMetallicRoughness.roughnessFactor;
+        }
 
-        // Transparency
-        alphaFactorRange.value = bcFactor ? (bcFactor[3] !== undefined ? bcFactor[3] : 1) : 1;
-        alphaFactorValue.value = bcFactor ? (bcFactor[3] !== undefined ? bcFactor[3] : 1) : 1;
-        doubleSidedCheckbox.checked = material.getDoubleSided();
-        alphaBlendModeSelect.value = material.getAlphaMode();
-        alphaCutoffInput.value = material.getAlphaCutoff();
-        alphaCutoffInput.disabled = material.getAlphaMode() !== 'MASK';
+        // Emissive Factor
+        if (emissiveFactorInput) {
+            const emissive = material.emissiveFactor;
+            if (emissive) {
+                const hex = `#${Math.round(emissive[0] * 255).toString(16).padStart(2, '0')}${Math.round(emissive[1] * 255).toString(16).padStart(2, '0')}${Math.round(emissive[2] * 255).toString(16).padStart(2, '0')}`;
+                emissiveFactorInput.value = hex.toUpperCase();
+            }
+        }
+
+        // Alpha Factor
+        if (alphaFactorRange && alphaFactorValue) {
+            const baseColor = material.pbrMetallicRoughness.baseColorFactor;
+            const alpha = baseColor ? baseColor[3] : 1;
+            alphaFactorRange.value = alpha;
+            alphaFactorValue.value = alpha;
+        }
+
+        // Double Sided
+        if (doubleSidedCheckbox) {
+            doubleSidedCheckbox.checked = material.getDoubleSided();
+        }
+
+        // Alpha Mode
+        if (alphaBlendModeSelect) {
+            alphaBlendModeSelect.value = material.getAlphaMode();
+        }
+
+        // Alpha Cutoff
+        if (alphaCutoffInput) {
+            alphaCutoffInput.value = material.getAlphaCutoff();
+        }
+
+        // Texture previews - These will need more advanced logic to display actual textures
+        // For now, we'll just indicate if a texture *might* be present based on properties
+        baseColorTexturePreview.textContent = material.pbrMetallicRoughness.baseColorTexture ? 'Texture Set' : 'No Texture';
+        metallicRoughnessTexturePreview.textContent = material.pbrMetallicRoughness.metallicRoughnessTexture ? 'Texture Set' : 'No Texture';
+        normalTexturePreview.textContent = material.normalTexture ? 'Texture Set' : 'No Texture';
+        emissiveTexturePreview.textContent = material.emissiveTexture ? 'Texture Set' : 'No Texture';
+        occlusionTexturePreview.textContent = material.occlusionTexture ? 'Texture Set' : 'No Texture';
     }
 
+    // Helper to get currently selected material from model-viewer
     function getSelectedMaterial() {
-        if (!modelViewerElement || !modelViewerElement.model || !materialSelect || materialSelect.value === '-1') {
+        if (!modelViewerElement || !modelViewerElement.model || !modelViewerElement.model.materials) {
             return null;
         }
-        const selectedIndex = parseInt(materialSelect.value, 10);
-        return modelViewerElement.model.materials[selectedIndex];
+        return modelViewerElement.model.materials[currentMaterialIndex];
     }
 
-    // --- Event Listeners for Material Property Controls ---
+    // --- Hotspot Tab Functionality ---
 
-    // Base Color Factor
-    baseColorFactorInput.addEventListener('input', (event) => {
-        const material = getSelectedMaterial();
-        if (!material) return;
-        const hex = event.target.value;
-        const r = parseInt(hex.slice(1, 3), 16) / 255;
-        const g = parseInt(hex.slice(3, 5), 16) / 255;
-        const b = parseInt(hex.slice(5, 7), 16) / 255;
-        const currentAlpha = material.pbrMetallicRoughness.baseColorFactor ? material.pbrMetallicRoughness.baseColorFactor[3] : 1;
-        material.pbrMetallicRoughness.setBaseColorFactor([r, g, b, currentAlpha]);
-    });
-
-    // Metallic Factor
-    [metallicFactorRange, metallicFactorValue].forEach(el => {
-        el.addEventListener('input', (event) => {
-            const material = getSelectedMaterial();
-            if (!material) return;
-            const value = parseFloat(event.target.value);
-            material.pbrMetallicRoughness.setMetallicFactor(value);
-            if (el === metallicFactorRange) metallicFactorValue.value = value;
-            if (el === metallicFactorValue) metallicFactorRange.value = value;
-        });
-    });
-
-    // Roughness Factor
-    [roughnessFactorRange, roughnessFactorValue].forEach(el => {
-        el.addEventListener('input', (event) => {
-            const material = getSelectedMaterial();
-            if (!material) return;
-            const value = parseFloat(event.target.value);
-            material.pbrMetallicRoughness.setRoughnessFactor(value);
-            if (el === roughnessFactorRange) roughnessFactorValue.value = value;
-            if (el === roughnessFactorValue) roughnessFactorRange.value = value;
-        });
-    });
-
-    // Emissive Factor
-    emissiveFactorInput.addEventListener('input', (event) => {
-        const material = getSelectedMaterial();
-        if (!material) return;
-        const hex = event.target.value;
-        const r = parseInt(hex.slice(1, 3), 16) / 255;
-        const g = parseInt(hex.slice(3, 5), 16) / 255;
-        const b = parseInt(hex.slice(5, 7), 16) / 255;
-        material.setEmissiveFactor([r, g, b]);
-    });
-
-    // Alpha Factor (Opacity) - Modifies baseColorFactor's alpha component
-    [alphaFactorRange, alphaFactorValue].forEach(el => {
-        el.addEventListener('input', (event) => {
-            const material = getSelectedMaterial();
-            if (!material) return;
-            const alpha = parseFloat(event.target.value);
-            const bcf = material.pbrMetallicRoughness.baseColorFactor || [1,1,1,1]; // Default if not set
-            material.pbrMetallicRoughness.setBaseColorFactor([bcf[0], bcf[1], bcf[2], alpha]);
-            if (el === alphaFactorRange) alphaFactorValue.value = alpha;
-            if (el === alphaFactorValue) alphaFactorRange.value = alpha;
-        });
-    });
-    
-    // Double Sided
-    doubleSidedCheckbox.addEventListener('change', (event) => {
-        const material = getSelectedMaterial();
-        if (!material) return;
-        material.setDoubleSided(event.target.checked);
-    });
-
-    // Alpha Blend Mode
-    alphaBlendModeSelect.addEventListener('change', (event) => {
-        const material = getSelectedMaterial();
-        if (!material) return;
-        const mode = event.target.value;
-        material.setAlphaMode(mode);
-        alphaCutoffInput.disabled = mode !== 'MASK';
-        if (mode !== 'MASK') {
-            // Reset alpha cutoff visually if mode is not MASK, or let model-viewer handle it.
-            // alphaCutoffInput.value = material.getAlphaCutoff(); 
-        }
-    });
-
-    // Alpha Cutoff
-    alphaCutoffInput.addEventListener('input', (event) => {
-        const material = getSelectedMaterial();
-        if (!material || alphaBlendModeSelect.value !== 'MASK') return;
-        material.setAlphaCutoff(parseFloat(event.target.value));
-    });
-
-    // --- Logic for Reset Buttons (Simplified) ---
-    materialResetButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const material = getSelectedMaterial();
-            if (!material) return;
-            const property = button.dataset.property;
-
-            switch (property) {
-                case 'baseColorFactor':
-                    material.pbrMetallicRoughness.setBaseColorFactor([1, 1, 1, 1]);
-                    break;
-                case 'baseColorTexture': // Setting texture to null
-                    // material.pbrMetallicRoughness.baseColorTexture.setTexture(null); // This API might not be direct
-                    console.warn('Resetting baseColorTexture to null - requires specific model-viewer API or texture management');
-                    // For now, we can't directly set a texture to null easily without more complex texture handling.
-                    // We would typically re-assign a new TextureInfo object or null if allowed by API.
-                    break;
-                case 'metallicFactor':
-                    material.pbrMetallicRoughness.setMetallicFactor(1);
-                    break;
-                case 'roughnessFactor':
-                    material.pbrMetallicRoughness.setRoughnessFactor(1);
-                    break;
-                case 'metallicRoughnessTexture':
-                    console.warn('Resetting metallicRoughnessTexture to null');
-                    break;
-                case 'normalTexture':
-                    // material.normalTexture.setTexture(null);
-                    console.warn('Resetting normalTexture to null');
-                    break;
-                case 'emissiveFactor':
-                    material.setEmissiveFactor([0, 0, 0]);
-                    break;
-                case 'emissiveTexture':
-                    console.warn('Resetting emissiveTexture to null');
-                    break;
-                case 'occlusionTexture':
-                    // material.occlusionTexture.setTexture(null);
-                    console.warn('Resetting occlusionTexture to null');
-                    break;
-                case 'alphaFactor': // Resets alpha component of baseColorFactor
-                     const bcf = material.pbrMetallicRoughness.baseColorFactor || [1,1,1,1];
-                    material.pbrMetallicRoughness.setBaseColorFactor([bcf[0], bcf[1], bcf[2], 1]);
-                    break;
-                case 'doubleSided':
-                    material.setDoubleSided(false);
-                    break;
-                case 'alphaBlendMode':
-                    material.setAlphaMode('OPAQUE');
-                    break;
-                case 'alphaCutoff':
-                    material.setAlphaCutoff(0.5);
-                    break;
+    // Function to add a hotspot
+    if (addHotspotBtn) {
+        addHotspotBtn.addEventListener('click', () => {
+            if (!modelViewerElement || !modelViewerElement.loaded) {
+                alert('Please load a GLB model first.');
+                return;
             }
-            // After resetting the model property, re-display properties to update UI
-            displayMaterialProperties(material);
-        });
-    });
-
-    // --- Editor Panel Resizer Logic ---
-    if (editorPanelResizer && editorPanel && threeDViewArea) {
-        let isResizing = false;
-        let initialPanelWidth = 0;
-        let initialMouseX = 0;
-
-        editorPanelResizer.addEventListener('mousedown', (e) => {
-            isResizing = true;
-            initialPanelWidth = editorPanel.offsetWidth;
-            initialMouseX = e.clientX;
-            
-            // Prevent text selection while dragging
-            document.body.style.userSelect = 'none';
-            document.body.style.pointerEvents = 'none'; // Prevent other pointer events during resize
-
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-        });
-
-        function handleMouseMove(e) {
-            if (!isResizing) return;
-
-            const dx = e.clientX - initialMouseX;
-            let newPanelWidth = initialPanelWidth - dx; // Subtract dx because we are dragging from left to right to shrink the right panel
-
-            // Apply constraints (min/max width from CSS will also help, but JS can enforce it strictly)
-            const minPanelWidth = parseInt(getComputedStyle(editorPanel).minWidth, 10) || 280;
-            const maxPanelWidth = parseInt(getComputedStyle(editorPanel).maxWidth, 10) || 600;
-            
-            if (newPanelWidth < minPanelWidth) {
-                newPanelWidth = minPanelWidth;
+            if (!isPlacingHotspot) {
+                isPlacingHotspot = true;
+                modelViewerElement.style.cursor = 'crosshair'; // Change cursor to indicate placement mode
+                modelViewerElement.removeAttribute('camera-controls'); // Temporarily disable camera controls for precise placement
+                alert('Click on the model to place a hotspot.');
+            } else {
+                isPlacingHotspot = false;
+                modelViewerElement.style.cursor = 'grab';
+                modelViewerElement.setAttribute('camera-controls', ''); // Re-enable camera controls
             }
-            if (newPanelWidth > maxPanelWidth) {
-                newPanelWidth = maxPanelWidth;
-            }
-            
-            editorPanel.style.width = `${newPanelWidth}px`;
-            // The 3D view area will adjust automatically due to flex-grow: 1
-            // We might need to set its flex-basis or width if flex-grow alone is not enough or causes issues.
-        }
-
-        function handleMouseUp() {
-            if (!isResizing) return;
-            isResizing = false;
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-
-            document.body.style.userSelect = ''; // Re-enable text selection
-            document.body.style.pointerEvents = ''; // Re-enable pointer events
-
-            // Optional: Save the new width to localStorage if you want it to persist
-            // localStorage.setItem('editorPanelWidth', editorPanel.style.width);
-        }
-
-        // Optional: Load saved width on page load
-        // const savedPanelWidth = localStorage.getItem('editorPanelWidth');
-        // if (savedPanelWidth) {
-        //     editorPanel.style.width = savedPanelWidth;
-        // }
+        });
     }
 
-    // --- Hotspots Logic ---
-    // Function to initialize or re-initialize model viewer related event listeners
+    // Function to handle hotspot repositioning
+    if (repositionHotspotBtn) {
+        repositionHotspotBtn.addEventListener('click', () => {
+            if (currentHotspotIndex === -1) {
+                alert('Please select a hotspot to reposition.');
+                return;
+            }
+            if (!isRepositioningHotspot) {
+                isRepositioningHotspot = true;
+                modelViewerElement.style.cursor = 'crosshair';
+                modelViewerElement.removeAttribute('camera-controls');
+                alert('Click on the model to reposition the selected hotspot.');
+            } else {
+                isRepositioningHotspot = false;
+                modelViewerElement.style.cursor = 'grab';
+                modelViewerElement.setAttribute('camera-controls', '');
+            }
+        });
+    }
+
+    // Function to delete selected hotspot
+    if (deleteHotspotBtn) {
+        deleteHotspotBtn.addEventListener('click', () => {
+            if (currentHotspotIndex === -1) {
+                alert('Please select a hotspot to delete.');
+                return;
+            }
+
+            const hotspotIdToDelete = hotspotsArray[currentHotspotIndex].id;
+            // Remove from model-viewer DOM
+            const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotIdToDelete}"]`);
+            if (hotspotDiv) {
+                hotspotDiv.remove();
+            }
+            // Remove from array
+            hotspotsArray.splice(currentHotspotIndex, 1);
+            currentHotspotIndex = -1; // No hotspot selected
+            selectedHotspotControlsSection.style.display = 'none';
+            alert('Hotspot deleted.');
+        });
+    }
+
+    // Logic for repositioning an existing hotspot
+    function updateHotspotPosition(hotspotId, position, normal) {
+        const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotId}"]`);
+        if (hotspotDiv) {
+            hotspotDiv.dataset.position = position;
+            hotspotDiv.dataset.normal = normal;
+            // For now, model-viewer automatically updates visual position based on dataset attributes
+            // modelViewerElement.requestUpdate(); // Request an update after changing attributes
+            console.log(`Hotspot ${hotspotId} repositioned to:`, position, normal);
+        }
+    }
+
+    // Event listener for clicks on the model-viewer to add/reposition hotspots
     function setupModelViewerEventListeners() {
         if (modelViewerElement) {
-            // Remove existing listener to avoid duplicates if called multiple times
-            modelViewerElement.removeEventListener('click', handleModelViewerClickForHotspot);
+            modelViewerElement.removeEventListener('click', handleModelViewerClickForHotspot); // Prevent duplicate listeners
             modelViewerElement.addEventListener('click', handleModelViewerClickForHotspot);
         }
     }
 
-    if (addHotspotBtn) {
-        addHotspotBtn.addEventListener('click', () => {
-            isPlacingHotspot = true;
-            // selectedHotspotControlsSection.style.display = 'block'; // Show controls
-            // For now, just log. Placement on model click will show controls.
-            console.log('Add Hotspot mode activated. Click on the model to place a hotspot.');
-            // Optionally change cursor for model-viewer
-            if (modelViewerElement) {
-                modelViewerElement.style.cursor = 'crosshair';
-                modelViewerElement.removeAttribute('camera-controls'); // Disable camera controls
-                isRepositioningHotspot = false; // Ensure repositioning is off
-            }
-        });
-    }
-
-    // Moved model viewer click listener setup to be called after model viewer exists
     function handleModelViewerClickForHotspot(event) {
-        if (isPlacingHotspot) {
-            if (!modelViewerElement || !modelViewerElement.loaded) {
-                if (modelViewerElement) modelViewerElement.setAttribute('camera-controls', ''); // Re-enable if model not loaded
-                return;
-            }
+        const hit = event.detail.hit;
+        if (hit && hit.distance && hit.normal && hit.position) {
+            const positionString = `${hit.position.x}m ${hit.position.y}m ${hit.position.z}m`;
+            const normalString = `${hit.normal.x} ${hit.normal.y} ${hit.normal.z}`;
 
-            const hit = modelViewerElement.surfaceFromPoint(event.clientX, event.clientY);
-            console.log('Hit test result:', hit); // Log the hit object
+            if (isRepositioningHotspot && currentHotspotIndex !== -1) {
+                // Reposition existing hotspot
+                const hotspotToReposition = hotspotsArray[currentHotspotIndex];
+                hotspotToReposition.position = positionString;
+                hotspotToReposition.normal = normalString;
+                updateHotspotPosition(hotspotToReposition.id, positionString, normalString);
+                populateHotspotPanel(hotspotToReposition); // Update UI with new position
+                isRepositioningHotspot = false;
+                modelViewerElement.style.cursor = 'grab';
+                modelViewerElement.setAttribute('camera-controls', ''); // Re-enable camera controls
+                alert('Hotspot repositioned successfully!');
 
-            // Workaround for surfaceFromPoint returning a string instead of an object
-            let positionString = null;
-            let normalString = null;
-
-            if (typeof hit === 'string') {
-                const parts = hit.trim().split(/\s+/);
-                // Assuming the structure based on observed output: unknown unknown posX posY posZ normX normY normZ
-                // We need to be careful here, this is based on an assumption.
-                if (parts.length >= 8) { // Need at least 2 initial values + 3 for pos + 3 for normal
-                    positionString = `${parts[2]} ${parts[3]} ${parts[4]}`;
-                    normalString = `${parts[5]} ${parts[6]} ${parts[7]}`;
-                    console.log('Parsed position string:', positionString);
-                    console.log('Parsed normal string:', normalString);
-                }
-            } else if (hit && hit.position && hit.normal) { // Ideal case, if it ever returns an object
-                positionString = hit.position.toString();
-                normalString = hit.normal.toString();
-            }
-
-            if (positionString && normalString) { 
+            } else if (isPlacingHotspot) {
+                // Add new hotspot
                 // const { position, normal } = hit; // Old way
                 const newHotspotId = `hotspot-${Date.now()}`; 
 
@@ -908,6 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hotspotDiv.slot = newHotspotId;
                 hotspotDiv.dataset.position = newHotspotData.position;
                 hotspotDiv.dataset.normal = newHotspotData.normal;
+                hotspotDiv.dataset.placement = newHotspotData.placement || 'top-center';
                 if (newHotspotData.openOnLoad) { // Addresses hotspot 'open' attribute
                     hotspotDiv.setAttribute('open', '');
                 }
@@ -941,82 +799,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     modelViewerElement.setAttribute('camera-controls', ''); // Re-enable camera controls
                 }
             }
-        } else if (isRepositioningHotspot) {
-            // Logic for repositioning an existing hotspot
-            if (!modelViewerElement.loaded || currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) {
-                if(modelViewerElement) modelViewerElement.setAttribute('camera-controls', ''); // Re-enable if error
-                return;
-            }
-
-            const hit = modelViewerElement.surfaceFromPoint(event.clientX, event.clientY);
-            console.log('Hit test result (repositioning):', hit); // Log the hit object for repositioning
-
-            let positionStringReposition = null;
-            let normalStringReposition = null;
-
-            if (typeof hit === 'string') {
-                const parts = hit.trim().split(/\s+/);
-                if (parts.length >= 8) {
-                    positionStringReposition = `${parts[2]} ${parts[3]} ${parts[4]}`;
-                    normalStringReposition = `${parts[5]} ${parts[6]} ${parts[7]}`;
-                }
-            } else if (hit && hit.position && hit.normal) {
-                positionStringReposition = hit.position.toString();
-                normalStringReposition = hit.normal.toString();
-            }
-
-            if (positionStringReposition && normalStringReposition) {
-                // const { position, normal } = hit; // Old way
-                const hotspotData = hotspotsArray[currentHotspotIndex];
-                const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotData.id}"]`);
-
-                // Update data
-                hotspotData.position = positionStringReposition; // Use parsed string
-                hotspotData.normal = normalStringReposition;   // Use parsed string
-
-                isRepositioningHotspot = false;
-                modelViewerElement.style.cursor = 'grab'; // Reset cursor
-                modelViewerElement.setAttribute('camera-controls', ''); // Re-enable camera controls
-                console.log(`Hotspot ${hotspotData.id} repositioned to:`, hotspotData.position);
-                alert('Hotspot repositioned!'); // User feedback
-            } else {
-                console.log('Clicked on empty space or invalid surface point. Reposition cancelled.');
-                isRepositioningHotspot = false; // Exit repositioning mode
-                if (modelViewerElement) {
-                    modelViewerElement.style.cursor = 'grab'; // Reset cursor
-                    modelViewerElement.setAttribute('camera-controls', ''); // Re-enable camera controls
-                }
-            }
         }
-        // Potential future: Logic for selecting an existing hotspot on click when not placing/repositioning
     }
 
+    // Function to populate hotspot panel with selected hotspot data
     function populateHotspotPanel(hotspotData) {
         if (!hotspotData) {
+            // Clear inputs if no hotspot selected
+            hotspotTitleInput.value = '';
+            hotspotTextInput.value = '';
+            hotspotLinkInput.value = '';
+            hotspotLinkLabelInput.value = '';
+            hotspotOpenOnLoadCheckbox.checked = false;
+            updatePlacementGridUI('');
             selectedHotspotControlsSection.style.display = 'none';
             return;
         }
-        hotspotTitleInput.value = hotspotData.title;
-        hotspotTextInput.value = hotspotData.text;
-        hotspotLinkInput.value = hotspotData.link;
-        hotspotLinkLabelInput.value = hotspotData.linkLabel;
-        hotspotOpenOnLoadCheckbox.checked = hotspotData.openOnLoad;
-        updatePlacementGridUI(hotspotData.placement);
+
+        hotspotTitleInput.value = hotspotData.title || '';
+        hotspotTextInput.value = hotspotData.text || '';
+        hotspotLinkInput.value = hotspotData.link || '';
+        hotspotLinkLabelInput.value = hotspotData.linkLabel || '';
+        hotspotOpenOnLoadCheckbox.checked = hotspotData.openOnLoad || false;
+        updatePlacementGridUI(hotspotData.placement || 'top-center');
         selectedHotspotControlsSection.style.display = 'block';
     }
 
+    // Function to update the visual state of the hotspot placement grid
     function updatePlacementGridUI(placementValue) {
         const buttons = hotspotPlacementGrid.querySelectorAll('button');
-        buttons.forEach(btn => {
-            if (btn.dataset.placement === placementValue) {
-                btn.classList.add('active');
+        buttons.forEach(button => {
+            if (button.dataset.placement === placementValue) {
+                button.classList.add('active');
             } else {
-                btn.classList.remove('active');
+                button.classList.remove('active');
             }
         });
     }
 
-    // --- Hotspot Data Update Listeners ---
+    // Hotspot data update listeners
     [hotspotTitleInput, hotspotTextInput, hotspotLinkInput, hotspotLinkLabelInput].forEach(input => {
         if(input) {
             input.addEventListener('input', () => {
@@ -1050,15 +871,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    if(hotspotOpenOnLoadCheckbox) {
-        hotspotOpenOnLoadCheckbox.addEventListener('change', () => {
+    if (hotspotOpenOnLoadCheckbox) {
+        hotspotOpenOnLoadCheckbox.addEventListener('change', (event) => {
             if (currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) return;
-            const hotspotData = hotspotsArray[currentHotspotIndex];
-            hotspotData.openOnLoad = hotspotOpenOnLoadCheckbox.checked;
-            
-            const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotData.id}"]`);
-            if (hotspotDiv) { // Addresses hotspot 'open' attribute
-                if (hotspotData.openOnLoad) {
+            const currentData = hotspotsArray[currentHotspotIndex];
+            currentData.openOnLoad = event.target.checked;
+            const hotspotDiv = modelViewerElement.querySelector(`[slot="${currentData.id}"]`);
+            if (hotspotDiv) {
+                if (currentData.openOnLoad) {
                     hotspotDiv.setAttribute('open', '');
                 } else {
                     hotspotDiv.removeAttribute('open');
@@ -1067,118 +887,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Placement Grid Logic
     if (hotspotPlacementGrid) {
         hotspotPlacementGrid.addEventListener('click', (event) => {
-            const target = event.target.closest('button');
-            if (!target || currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) return;
+            const targetButton = event.target.closest('button');
+            if (!targetButton || currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) return;
 
-            const newPlacement = target.dataset.placement;
-            if (newPlacement) {
-                hotspotsArray[currentHotspotIndex].placement = newPlacement;
-                updatePlacementGridUI(newPlacement);
-                // Note: model-viewer does not directly use a 'placement' attribute.
-                // The visual placement is determined by CSS and the slot's relation to position/normal.
-                // This 'placement' value is primarily for storing user preference.
-            }
-        });
-    }
-
-    // Delete Hotspot Button Logic
-    if (deleteHotspotBtn) {
-        deleteHotspotBtn.addEventListener('click', () => {
-            if (currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) return;
-
-            const hotspotToDelete = hotspotsArray[currentHotspotIndex];
-            const hotspotDiv = modelViewerElement?.querySelector(`[slot="${hotspotToDelete.id}"]`);
-
-            // Remove visual element
+            const placementValue = targetButton.dataset.placement;
+            hotspotsArray[currentHotspotIndex].placement = placementValue;
+            updatePlacementGridUI(placementValue);
+            const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotsArray[currentHotspotIndex].id}"]`);
             if (hotspotDiv) {
-                hotspotDiv.remove();
-            }
-
-            // Remove data from array
-            hotspotsArray.splice(currentHotspotIndex, 1);
-
-            // Reset UI
-            currentHotspotIndex = -1;
-            selectedHotspotControlsSection.style.display = 'none';
-            // Clear input fields (optional)
-            // hotspotTitleInput.value = '';
-            // hotspotTextInput.value = '';
-            // hotspotLinkInput.value = '';
-            // hotspotLinkLabelInput.value = '';
-            // hotspotOpenOnLoadCheckbox.checked = false;
-            // updatePlacementGridUI('top-center'); // Reset placement UI
-
-            console.log('Hotspot deleted.', hotspotsArray);
-        });
-    }
-
-    // Reposition Hotspot Button Logic
-    if (repositionHotspotBtn) {
-        repositionHotspotBtn.addEventListener('click', () => {
-            if (currentHotspotIndex === -1 || !hotspotsArray[currentHotspotIndex]) {
-                alert('No hotspot selected to reposition.');
-                return;
-            }
-            isRepositioningHotspot = true;
-            isPlacingHotspot = false; // Ensure placing mode is off
-            console.log('Reposition mode activated. Click on the model to set the new position.');
-            if (modelViewerElement) {
-                modelViewerElement.style.cursor = 'crosshair'; // Use crosshair for repositioning too
-                modelViewerElement.removeAttribute('camera-controls'); // Disable camera controls
+                hotspotDiv.dataset.placement = placementValue;
+                // modelViewerElement.requestUpdate(); // Not always needed for dataset changes, but good for safety
             }
         });
     }
 
-    // --- Save Project State Logic ---
-    if (savePublishBtn) {
-        savePublishBtn.addEventListener('click', () => {
-            if (savePublishBtn.disabled) return;
-
-            if (!modelViewerElement || !currentModelName || !posterGenerated) {
-                alert('Cannot save. Ensure a model is loaded, project name is set (using model name for now), and a poster is generated.');
-                return;
-            }
-
-            // 1. Gather current state
-            const currentState = {
-                modelInfo: {
-                    name: currentModelName
-                },
-                environmentInfo: {
-                    source: modelViewerElement.environmentImage || 'default',
-                    hdrName: currentHDRName // Store HDR name
-                },
-                posterDataUrl: posterPreview.querySelector('img')?.src || null,
-                camera: {
-                    target: modelViewerElement.cameraTarget,
-                    orbit: modelViewerElement.cameraOrbit
-                },
-                lighting: {
-                    exposure: modelViewerElement.exposure,
-                    shadowIntensity: modelViewerElement.shadowIntensity,
-                    shadowSoftness: modelViewerElement.shadowSoftness,
-                    useSkybox: skyboxEnvCheckbox.checked,
-                    bgColor: modelViewerElement.style.backgroundColor || '#FFFFFF' // Need to handle transparent explicitly?
-                },
-                materialOverrides: gatherMaterialOverrides(), // Function to gather overrides
-                hotspots: hotspotsArray // Use the existing array
-            };
-
-            // 2. Save to localStorage
-            try {
-                localStorage.setItem('arMenuProjectData', JSON.stringify(currentState));
-                alert('Project state saved successfully (simulated)!');
-                console.log('Saved State:', currentState);
-            } catch (error) {
-                console.error('Error saving project state to localStorage:', error);
-                alert('Failed to save project state. LocalStorage might be full or disabled.');
-            }
-        });
-    }
-
+    // Function to gather material overrides for saving
     function gatherMaterialOverrides() {
         // Simplification: Save properties of the *currently selected* material only.
         // A real implementation would iterate through all materials and store changes.
@@ -1203,6 +928,83 @@ document.addEventListener('DOMContentLoaded', () => {
             overrides.push(overrideData);
         }
         return overrides;
+    }
+
+    // --- Save Project State Logic ---
+    if (savePublishBtn) {
+        savePublishBtn.addEventListener('click', async () => { // Made async
+            if (savePublishBtn.disabled) return;
+
+            if (!modelViewerElement || !currentModelName || !posterGenerated) {
+                alert('Cannot save. Ensure a model is loaded, project name is set (using model name for now), and a poster is generated.');
+                return;
+            }
+
+            // 1. Gather current state (metadata)
+            const currentState = {
+                modelInfo: {
+                    name: currentModelName
+                },
+                environmentInfo: {
+                    source: modelViewerElement.environmentImage || 'default',
+                    hdrName: currentHDRName // Store HDR name
+                },
+                posterDataUrl: posterPreview.querySelector('img')?.src || null,
+                camera: {
+                    target: modelViewerElement.cameraTarget,
+                    orbit: modelViewerElement.cameraOrbit
+                },
+                lighting: {
+                    exposure: modelViewerElement.exposure,
+                    shadowIntensity: modelViewerElement.shadowIntensity,
+                    shadowSoftness: modelViewerElement.shadowSoftness,
+                    useSkybox: skyboxEnvCheckbox.checked,
+                    bgColor: modelViewerElement.style.backgroundColor || '#FFFFFF'
+                },
+                materialOverrides: gatherMaterialOverrides(), // Function to gather overrides
+                hotspots: hotspotsArray // Use the existing array
+            };
+
+            // 2. Upload GLB file to backend
+            if (currentGlbFile) {
+                const formData = new FormData();
+                formData.append('glbFile', currentGlbFile);
+
+                try {
+                    const response = await fetch('http://localhost:5000/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const message = await response.text();
+                        console.log('Backend response:', message);
+                        alert(`Το αρχείο ${currentGlbFile.name} ανεβάστηκε επιτυχώς!`);
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Σφάλμα ανεβάσματος αρχείου:', response.status, errorText);
+                        alert(`Αποτυχία ανεβάσματος αρχείου: ${errorText}`);
+                    }
+                } catch (error) {
+                    console.error('Σφάλμα δικτύου κατά το ανέβασμα του αρχείου:', error);
+                    alert('Σφάλμα δικτύου. Ελέγξτε ότι το backend server τρέχει.');
+                }
+            } else {
+                alert('Δεν υπάρχει αρχείο GLB για αποθήκευση στο backend.');
+            }
+
+            // 3. Save project state (metadata) to localStorage for now.
+            // In the future, this state could also be sent to the backend
+            // along with the GLB file, or associated with the GLB file's ID.
+            try {
+                localStorage.setItem('arMenuProjectData', JSON.stringify(currentState));
+                alert('Project state saved successfully (to localStorage)!'); // Changed alert text
+                console.log('Saved State to localStorage:', currentState);
+            } catch (error) {
+                console.error('Error saving project state to localStorage:', error);
+                alert('Failed to save project state to localStorage. LocalStorage might be full or disabled.');
+            }
+        });
     }
 
     // --- Load Project State Logic (Run on DOMContentLoaded) ---
@@ -1293,38 +1095,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Apply Hotspots
-                hotspotsArray = savedState.hotspots || [];
-                currentHotspotIndex = -1; // Reset selection
-                selectedHotspotControlsSection.style.display = 'none';
-                // Clear existing hotspot divs from model
-                modelViewerElement.querySelectorAll('.hotspot-annotation').forEach(el => el.remove());
-                // Recreate hotspot divs
-                hotspotsArray.forEach(hotspotData => {
-                    const hotspotDiv = document.createElement('div');
-                    hotspotDiv.classList.add('hotspot-annotation');
-                    hotspotDiv.slot = hotspotData.id;
-                    hotspotDiv.dataset.position = hotspotData.position;
-                    hotspotDiv.dataset.normal = hotspotData.normal;
-                    if (hotspotData.openOnLoad) { // Addresses hotspot 'open' attribute
-                        hotspotDiv.setAttribute('open', '');
-                    }
-                    let linkHTML = ''; // Addresses hotspot link HTML
-                    if (hotspotData.link) {
-                        constlinkLabel = hotspotData.linkLabel || hotspotData.link;
-                        linkHTML = `<p><a href="${hotspotData.link}" target="_blank">${linkLabel}</a></p>`;
-                    }
-                    hotspotDiv.innerHTML = `
-                        <div class="hotspot-visual-cue"></div>
-                        <div class="hotspot-content-wrapper">
-                            <strong>${hotspotData.title}</strong>
-                            <p>${hotspotData.text}</p>
-                            ${linkHTML}
-                        </div>
-                    `;
-                    modelViewerElement.appendChild(hotspotDiv);
-                });
-                modelViewerElement.requestUpdate(); // Request an update after recreating all hotspots on load
+                if (savedState.hotspots && savedState.hotspots.length > 0) {
+                    // Clear existing hotspots before loading saved ones
+                    modelViewerElement.querySelectorAll('.hotspot-annotation').forEach(h => h.remove());
+                    hotspotsArray = []; // Reset array
 
+                    savedState.hotspots.forEach(savedHotspot => {
+                        const newHotspotData = { ...savedHotspot }; // Create a copy
+                        hotspotsArray.push(newHotspotData); // Add to array
+
+                        const hotspotDiv = document.createElement('div');
+                        hotspotDiv.classList.add('hotspot-annotation');
+                        hotspotDiv.slot = newHotspotData.id;
+                        hotspotDiv.dataset.position = newHotspotData.position;
+                        hotspotDiv.dataset.normal = newHotspotData.normal;
+                        hotspotDiv.dataset.placement = newHotspotData.placement || 'top-center';
+                        if (newHotspotData.openOnLoad) {
+                            hotspotDiv.setAttribute('open', '');
+                        }
+
+                        let linkHTML = '';
+                        if (newHotspotData.link) {
+                            const linkLabel = newHotspotData.linkLabel || newHotspotData.link;
+                            linkHTML = `<p><a href="${newHotspotData.link}" target="_blank">${linkLabel}</a></p>`;
+                        }
+                        hotspotDiv.innerHTML = `
+                            <div class="hotspot-visual-cue"></div>
+                            <div class="hotspot-content-wrapper">
+                                <strong>${newHotspotData.title}</strong>
+                                <p>${newHotspotData.text}</p>
+                                ${linkHTML}
+                            </div>
+                        `;
+                        modelViewerElement.appendChild(hotspotDiv);
+                    });
+                    modelViewerElement.requestUpdate(); // Request update after adding all hotspots
+                }
+                
                 updateFooterWarnings(); // Update save button state etc.
 
                 alert('Project state loaded (settings applied to current model).');
@@ -1359,24 +1166,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Function to Update Scale Input ---
+    // --- Function to Update Scale Input based on current model scale ---
     function updateScaleInput() {
-        if (modelViewerElement && modelViewerElement.loaded && scaleInput) {
-            // Assuming model initially loads with scale "1 1 1" or we get it if available
-            const currentScale = modelViewerElement.scale ? modelViewerElement.scale.split(' ') : ['1', '1', '1'];
-            // For simplicity, assuming uniform scale for the input, take the x value
-            const representativeScale = parseFloat(currentScale[0]); 
-            scaleInput.value = representativeScale.toFixed(2); // Format to 2 decimal places
+        if (modelViewerElement && modelViewerElement.scale) {
+            const scaleParts = modelViewerElement.scale.split(' ');
+            // Assuming uniform scale for now, take the first component
+            currentModelScale.x = parseFloat(scaleParts[0]);
+            currentModelScale.y = parseFloat(scaleParts[1]);
+            currentModelScale.z = parseFloat(scaleParts[2]);
 
-            // Store it for comparison
-            currentModelScale.x = representativeScale;
-            currentModelScale.y = parseFloat(currentScale[1]);
-            currentModelScale.z = parseFloat(currentScale[2]);
-
-            if (applyScaleBtn) applyScaleBtn.disabled = true; // Initially disabled as it matches model
-        } else if (scaleInput) {
-            scaleInput.value = '1.00'; // Default if no model
-            if (applyScaleBtn) applyScaleBtn.disabled = true;
+            if(scaleInput) {
+                scaleInput.value = currentModelScale.x;
+                applyScaleBtn.disabled = true; // Disable if already at current scale
+            }
         }
     }
     
@@ -1412,69 +1214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateDimensionDisplay(); // Update dimensions after applying scale
             applyScaleBtn.disabled = true; // Disable after applying
         });
-    }
-
-    // Event Listener for Reset Scale Button
-    if (resetScaleBtn && scaleInput && applyScaleBtn) {
-        resetScaleBtn.addEventListener('click', () => {
-            if (!modelViewerElement || !modelViewerElement.loaded) return;
-
-            const defaultScaleValue = 1.0;
-            scaleInput.value = defaultScaleValue.toFixed(2);
-
-            const defaultScaleString = `${defaultScaleValue} ${defaultScaleValue} ${defaultScaleValue}`;
-            modelViewerElement.scale = defaultScaleString;
-
-            // Update internal current scale tracking
-            currentModelScale.x = defaultScaleValue;
-            currentModelScale.y = defaultScaleValue;
-            currentModelScale.z = defaultScaleValue;
-
-            updateDimensionDisplay(); // Update dimensions after resetting scale
-            applyScaleBtn.disabled = true; // Disable apply button as scale is now default
-        });
-    }
-
-    // --- Dimensions Tab Logic ---
-    function updateDimensionDisplay() {
-        if (modelViewerElement && modelViewerElement.loaded) {
-            const dims = modelViewerElement.getDimensions();
-            // Convert meters to cm and format
-            if(dimensionXSpan) dimensionXSpan.textContent = `${(dims.x * 100).toFixed(1)} cm`;
-            if(dimensionYSpan) dimensionYSpan.textContent = `${(dims.y * 100).toFixed(1)} cm`;
-            if(dimensionZSpan) dimensionZSpan.textContent = `${(dims.z * 100).toFixed(1)} cm`;
-        } else {
-            if(dimensionXSpan) dimensionXSpan.textContent = '-- cm';
-            if(dimensionYSpan) dimensionYSpan.textContent = '-- cm';
-            if(dimensionZSpan) dimensionZSpan.textContent = '-- cm';
-        }
-    }
-
-    // --- Function to Update Scale Input ---
-    function updateScaleInput() {
-        if (modelViewerElement && modelViewerElement.loaded && scaleInput) {
-            // Assuming model initially loads with scale "1 1 1" or we get it if available
-            const currentScale = modelViewerElement.scale ? modelViewerElement.scale.split(' ') : ['1', '1', '1'];
-            // For simplicity, assuming uniform scale for the input, take the x value
-            const representativeScale = parseFloat(currentScale[0]); 
-            scaleInput.value = representativeScale.toFixed(2); // Format to 2 decimal places
-
-            // Store it for comparison
-            currentModelScale.x = representativeScale;
-            currentModelScale.y = parseFloat(currentScale[1]);
-            currentModelScale.z = parseFloat(currentScale[2]);
-
-            if (applyScaleBtn) applyScaleBtn.disabled = true; // Initially disabled as it matches model
-        } else if (scaleInput) {
-            scaleInput.value = '1.00'; // Default if no model
-            if (applyScaleBtn) applyScaleBtn.disabled = true;
-        }
-    }
-
-    // Initialize Dimensions Tab controls if model is already loaded (e.g. state load)
-    if (modelViewerElement) {
-        updateDimensionDisplay();
-        updateScaleInput();
     }
 
 }); 
