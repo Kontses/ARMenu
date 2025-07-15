@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPlacingHotspot = false;
     let isRepositioningHotspot = false; // New state for repositioning
     let currentModelScale = { x: 1, y: 1, z: 1 }; // To store current scale
-    let currentHDRName = null; // Added for TODO #9
+    let currentHDRName = null; // Added for storing HDR name
 
     // --- Initial State Updates ---
     updateFooterWarnings();
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(applyScaleBtn) applyScaleBtn.disabled = true; 
                 if(resetScaleBtn) resetScaleBtn.disabled = false;
 
-                // Initialize UI controls with model's current values (Addresses TODO #3 & #4)
+                // Initialize UI controls with model's current values
                 // Camera Orbit
                 if (modelViewerElement.cameraOrbit) {
                     const orbitParts = modelViewerElement.cameraOrbit.split(' ');
@@ -255,9 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (shadowSoftnessRange) shadowSoftnessRange.value = modelViewerElement.shadowSoftness;
                 if (shadowSoftnessValueInput) shadowSoftnessValueInput.value = modelViewerElement.shadowSoftness;
 
-                // Populate material select dropdown (Addresses TODO #1)
+                // Populate material select dropdown
                 populateMaterialSelect();
-                // Setup hotspot listener AFTER model is loaded (Addresses TODO #1)
+                // Setup hotspot listener AFTER model is loaded
                 setupModelViewerEventListeners(); 
 
             }, { once: true }); // Ensure listener runs only once per model load
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (posterPreview) {
                 posterPreview.innerHTML = '<span class="poster-icon-placeholder"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-svg"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></span><span>No poster</span>';
             }
-            currentHDRName = null; // Reset HDR name when new GLB is loaded (TODO #9)
+            currentHDRName = null; // Reset HDR name when new GLB is loaded
 
             // Populate material select dropdown
             populateMaterialSelect();
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modelViewerElement) {
                 const objectURL = URL.createObjectURL(file);
                 modelViewerElement.setAttribute('environment-image', objectURL);
-                currentHDRName = fileName; // Store HDR name (TODO #9)
+                currentHDRName = fileName; // Store HDR name
                 if (skyboxEnvCheckbox && skyboxEnvCheckbox.checked) { 
                     modelViewerElement.skyboxImage = objectURL;
                 }
@@ -374,9 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // TODO: Sync Camera Orbit (Yaw/Pitch) with model-viewer
-    // TODO: Sync Lighting, Background, Shadows controls
-
     // --- Sync Camera Orbit (Yaw/Pitch) Inputs with model-viewer ---
     function updateCameraOrbit() {
         if (modelViewerElement && cameraYawInput && cameraPitchInput) {
@@ -394,8 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
             input.addEventListener('input', updateCameraOrbit);
         }
     });
-
-    // TODO: Sync Lighting, Background, Shadows controls
 
     // --- Sync Lighting Tab Controls with model-viewer ---
 
@@ -913,10 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 hotspotDiv.slot = newHotspotId;
                 hotspotDiv.dataset.position = newHotspotData.position;
                 hotspotDiv.dataset.normal = newHotspotData.normal;
-                if (newHotspotData.openOnLoad) { // Addresses TODO #6
+                if (newHotspotData.openOnLoad) { // Addresses hotspot 'open' attribute
                     hotspotDiv.setAttribute('open', '');
                 }
-                let linkHTML = ''; // Addresses TODO #5
+                let linkHTML = ''; // Addresses hotspot link HTML
                 if (newHotspotData.link) {
                     constlinkLabel = newHotspotData.linkLabel || newHotspotData.link;
                     linkHTML = `<p><a href="${newHotspotData.link}" target="_blank">${linkLabel}</a></p>`;
@@ -1006,7 +1001,6 @@ document.addEventListener('DOMContentLoaded', () => {
         hotspotLinkInput.value = hotspotData.link;
         hotspotLinkLabelInput.value = hotspotData.linkLabel;
         hotspotOpenOnLoadCheckbox.checked = hotspotData.openOnLoad;
-        // TODO: Update placement grid UI based on hotspotData.placement
         updatePlacementGridUI(hotspotData.placement);
         selectedHotspotControlsSection.style.display = 'block';
     }
@@ -1038,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hotspotDiv = modelViewerElement.querySelector(`[slot="${currentData.id}"]`);
                 if (hotspotDiv) {
                     // Rebuild innerHTML if title/text changes to keep structure
-                    let linkHTML = ''; // Addresses TODO #5
+                    let linkHTML = ''; // Addresses hotspot link HTML
                     if (currentData.link) {
                         constlinkLabel = currentData.linkLabel || currentData.link;
                         linkHTML = `<p><a href="${currentData.link}" target="_blank">${linkLabel}</a></p>`;
@@ -1063,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hotspotData.openOnLoad = hotspotOpenOnLoadCheckbox.checked;
             
             const hotspotDiv = modelViewerElement.querySelector(`[slot="${hotspotData.id}"]`);
-            if (hotspotDiv) { // Addresses TODO #6
+            if (hotspotDiv) { // Addresses hotspot 'open' attribute
                 if (hotspotData.openOnLoad) {
                     hotspotDiv.setAttribute('open', '');
                 } else {
@@ -1155,7 +1149,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 environmentInfo: {
                     source: modelViewerElement.environmentImage || 'default',
-                    hdrName: currentHDRName // Store HDR name (TODO #9)
+                    hdrName: currentHDRName // Store HDR name
                 },
                 posterDataUrl: posterPreview.querySelector('img')?.src || null,
                 camera: {
@@ -1311,10 +1305,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     hotspotDiv.slot = hotspotData.id;
                     hotspotDiv.dataset.position = hotspotData.position;
                     hotspotDiv.dataset.normal = hotspotData.normal;
-                    if (hotspotData.openOnLoad) { // Addresses TODO #6
+                    if (hotspotData.openOnLoad) { // Addresses hotspot 'open' attribute
                         hotspotDiv.setAttribute('open', '');
                     }
-                    let linkHTML = ''; // Addresses TODO #5
+                    let linkHTML = ''; // Addresses hotspot link HTML
                     if (hotspotData.link) {
                         constlinkLabel = hotspotData.linkLabel || hotspotData.link;
                         linkHTML = `<p><a href="${hotspotData.link}" target="_blank">${linkLabel}</a></p>`;

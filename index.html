@@ -11,7 +11,7 @@
     <div class="container">
         <header class="header">
             <div class="header-title">
-                <h1>Προϊόντα</h1>
+                <h1 id="headerTitleLink">AR Procucts</h1>
                 <button class="add-btn" id="addBtn">+</button>
                 <div class="add-options-menu" id="addOptionsMenu">
                     <button id="createProductBtn">
@@ -38,6 +38,20 @@
             </div>
         </header>
 
+        <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+            <div class="selection-controls">
+                <button id="selectAllBtn" class="bulk-action-btn">Select all</button>
+                <button id="clearSelectionBtn" class="bulk-action-btn">Clear selection</button>
+            </div>
+            <div class="selection-info" id="selectionInfoText">
+                <!-- Text like "X items selected" will go here -->
+            </div>
+            <div class="actions">
+                <button id="bulkMoveBtn" class="bulk-action-btn primary-action">Move</button>
+                <button id="bulkDeleteBtn" class="bulk-action-btn danger-action">Delete</button>
+            </div>
+        </div>
+
         <main class="main-content">
             <div class="breadcrumb-bar">
                 <button class="upload-btn">↑</button>
@@ -49,7 +63,9 @@
             </div>
 
             <div class="list-view-headers" id="listViewHeaders" style="display: none;">
-                <div class="header-item item-select-checkbox"></div>
+                <div class="header-item item-select-checkbox">
+                    <input type="checkbox" id="listHeaderCheckbox">
+                </div>
                 <div class="header-item item-icon-name">Product name</div>
                 <div class="header-item item-configurations">Configurations</div>
                 <div class="header-item item-created">Created</div>
