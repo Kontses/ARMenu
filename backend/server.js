@@ -4,7 +4,7 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const port = 5000; // Αλλαγή πόρτας σε 5000
+const port = process.env.PORT || 5000; // Χρησιμοποιήστε τη μεταβλητή περιβάλλοντος PORT ή default σε 5000
 
 // Enable CORS for all routes
 app.use(cors());
@@ -39,5 +39,5 @@ app.post('/upload', upload.single('glbFile'), (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Ο server τρέχει στο http://localhost:${port}`);
+  console.log(`Ο server τρέχει στη θύρα ${port}`);
 }); 
