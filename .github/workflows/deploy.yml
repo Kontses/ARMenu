@@ -8,6 +8,9 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      pages: write # Grant GITHUB_TOKEN write permission to deploy to GitHub Pages
+      id-token: write # For OpenID Connect (if needed, good practice)
 
     steps:
       - name: Checkout repository
